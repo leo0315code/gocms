@@ -213,7 +213,7 @@ make assets        # 改过后台模板/样式后重编 Tailwind
 make assets-watch  # 监听模板改动自动重编
 make check         # gofmt + go vet
 make test          # 单元测试（仓储集成测试自动跳过）
-make test-db       # 含仓储集成测试，需要 MySQL（测试库会被清空）
+make test-db       # 全部测试含集成：仓储 + 后台写路径（需 MySQL，测试库会被清空）
 make test-cover    # 覆盖率报告
 make start         # 后台启动（日志 .run/gocms.log）
 make stop          # 停止
@@ -228,9 +228,9 @@ go build -o gocms ./cmd/gocms && codesign --force --sign - ./gocms   # macOS 建
 go vet ./...
 go test ./...
 
-# 仓储集成测试（会清空 gocms_test 库，别指向生产库）
+# 集成测试（会清空 gocms_test 库，别指向生产库；写路径测试自动派生 gocms_test_writeflow 库）
 GOCMS_TEST_DSN='root:123456@tcp(127.0.0.1:3306)/gocms_test?parseTime=true&charset=utf8mb4&loc=Local' \
-  go test ./internal/repository/ -v
+  go test ./internal/repository/ ./internal/handler/ -v
 
 # 重编后台样式（仅改动 web/admin/templates 或 web/assets/src 后才需要）
 npm install && npx tailwindcss -i ./web/assets/src/input.css -o ./web/admin/static/app.css --minify

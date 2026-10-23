@@ -422,6 +422,12 @@ func (h *Handler) MediaUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	u := userOf(r)
+	// 只有 multipart 请求 ParseMultipartForm 才会填充 MultipartForm；
+	// urlencoded / 空 body 的请求走不到那个分支，直接取 .File 会 nil panic。
+	if r.MultipartForm == nil {
+		h.redirect(w, r, "/admin/media", "error", "请选择文件")
+		return
+	}
 	files := r.MultipartForm.File["files"]
 	if len(files) == 0 {
 		h.redirect(w, r, "/admin/media", "error", "请选择文件")

@@ -8,7 +8,7 @@ GOFMT    := $(shell go env GOROOT)/bin/gofmt
 LDFLAGS  := -s -w
 UNAME    := $(shell uname -s)
 
-# 仓储层集成测试需要一个独立库（会被清空，别指向生产库）
+# 集成测试需要 MySQL：仓储测试清空该库；后台写路径测试自动派生 <库>_writeflow 库
 TEST_DSN ?= root:123456@tcp(127.0.0.1:3306)/gocms_test?parseTime=true&charset=utf8mb4&loc=Local
 
 .PHONY: help run build build-linux assets assets-watch fmt vet tidy clean start stop restart logs check sign test test-db test-cover
@@ -55,7 +55,7 @@ check: fmt vet ## 格式化 + 静态检查
 test: ## 跑单元测试（仓储集成测试会自动跳过）
 	go test ./... -count=1
 
-test-db: ## 跑全部测试，含仓储集成测试（需要 MySQL，测试库会被清空）
+test-db: ## 跑全部测试，含仓储与后台写路径集成测试（需要 MySQL，测试库会被清空）
 	GOCMS_TEST_DSN='$(TEST_DSN)' go test ./... -count=1 -v
 
 test-cover: ## 生成覆盖率报告
