@@ -49,6 +49,8 @@ func (h *Handler) Healthz(w http.ResponseWriter, r *http.Request) {
 		err = errNoDB
 	}
 	resp.DBCheck = time.Since(start).Milliseconds()
+	// 进程运行时长：运维判断「是否刚重启过」「是否稳定运行」最直接的指标
+	resp.Uptime = int64(time.Since(processStartedAt).Seconds())
 
 	code := http.StatusOK
 	if err != nil {

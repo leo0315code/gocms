@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 
@@ -63,5 +64,25 @@ func TestHealthzWithoutDB(t *testing.T) {
 	}
 	if ct := rec.Header().Get("Content-Type"); !strings.Contains(ct, "application/json") {
 		t.Errorf("Content-Type = %q，期望 JSON", ct)
+	}
+}
+
+// uptime 曾经永远是 0：字段定义了却没赋值，JSON 里看着正常，实际拿不到任何信息。
+// 把启动时间往前拨 2 小时来断言它真的在被计算。
+func TestHealthzUptime(t *testing.T) {
+	orig := processStartedAt
+	processStartedAt = time.Now().Add(-2 * time.Hour)
+	t.Cleanup(func() { processStartedAt = orig })
+
+	h := &Handler{repo: &repository.Repo{}}
+	rec := httptest.NewRecorder()
+	h.Healthz(rec, httptest.NewRequest(http.MethodGet, "/healthz", nil))
+
+	var body healthResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("响应不是合法 JSON: %v", err)
+	}
+	if body.Uptime < 7000 {
+		t.Errorf("uptime_seconds = %d，进程已跑 2 小时应 > 7000", body.Uptime)
 	}
 }
