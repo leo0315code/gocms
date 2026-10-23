@@ -293,6 +293,48 @@ func TestAuditCreateAndFilter(t *testing.T) {
 	}
 }
 
+// 浏览量批量累加：一条 UPDATE 处理整批，且必须精确加上增量而不是覆盖。
+func TestAddViewsBatch(t *testing.T) {
+	r := newTestRepo(t)
+	catID := mustCategory(t, r, "新闻", "news", 0)
+	p1 := mustPost(t, r, "文章1", "post-v1", catID)
+	p2 := mustPost(t, r, "文章2", "post-v2", catID)
+
+	// 先有一批基础值，验证是在原值上累加
+	if err := r.Post.AddViews(map[uint64]int64{p1: 7, p2: 3}); err != nil {
+		t.Fatalf("首次累加失败: %v", err)
+	}
+	if err := r.Post.AddViews(map[uint64]int64{p1: 5, p2: 10}); err != nil {
+		t.Fatalf("二次累加失败: %v", err)
+	}
+
+	a, _ := r.Post.ByID(p1)
+	b, _ := r.Post.ByID(p2)
+	if a.Views != 12 {
+		t.Errorf("文章1 views = %d，期望 12（7+5）", a.Views)
+	}
+	if b.Views != 13 {
+		t.Errorf("文章2 views = %d，期望 13（3+10）", b.Views)
+	}
+
+	// 空 map 不应报错也不应执行 SQL
+	if err := r.Post.AddViews(nil); err != nil {
+		t.Errorf("空增量应静默返回，实际 %v", err)
+	}
+	// 不存在的 ID 不应影响其他行
+	if err := r.Post.AddViews(map[uint64]int64{999999: 5}); err != nil {
+		t.Errorf("不存在的 ID 不应报错，实际 %v", err)
+	}
+	if a, _ := r.Post.ByID(p1); a.Views != 12 {
+		t.Errorf("无关更新后文章1 views = %d，期望仍为 12", a.Views)
+	}
+
+	// 总浏览量统计要跟着变
+	if got := r.Post.TotalViews(); got != 25 {
+		t.Errorf("TotalViews = %d，期望 25", got)
+	}
+}
+
 // 小工具：按名称找标签的行 ID / slug
 func tagIDOf(t *testing.T, r *Repo, name string) uint64 {
 	t.Helper()

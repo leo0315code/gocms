@@ -126,6 +126,87 @@ func TestGzipCompressesNormalResponse(t *testing.T) {
 	}
 }
 
+// 小响应不压缩：gzip 头尾固定 ~20 字节，压 63 字节的 JSON 反而变 88 字节。
+// 这个用例守住「不要为了压缩而让响应变大」。
+func TestGzipSkipsSmallResponse(t *testing.T) {
+	payload := `{"status":"ok","db":"ok","uptime_seconds":5,"db_latency_ms":0}` // 63 字节
+	h := Gzip()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(payload))
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
+	req.Header.Set("Accept-Encoding", "gzip")
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+
+	if ce := rec.Header().Get("Content-Encoding"); ce != "" {
+		t.Errorf("小响应不应压缩，Content-Encoding = %q", ce)
+	}
+	if rec.Body.String() != payload {
+		t.Errorf("响应体被改动：%q", rec.Body.String())
+	}
+	// 没压缩时不应丢掉原始 Content-Length 语义
+	if rec.Body.Len() != len(payload) {
+		t.Errorf("响应体长度 = %d，期望 %d", rec.Body.Len(), len(payload))
+	}
+	// Vary 无论如何都要有，否则缓存会混用压缩/未压缩两个变体
+	if !strings.Contains(rec.Header().Get("Vary"), "Accept-Encoding") {
+		t.Errorf("缺少 Vary: Accept-Encoding，实际 %q", rec.Header().Get("Vary"))
+	}
+}
+
+// 分多次写入、累计超过阈值时必须压缩（缓冲逻辑不能只认第一次 Write）
+func TestGzipCompressesAcrossWrites(t *testing.T) {
+	h := Gzip()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		for i := 0; i < 40; i++ { // 40 × 64 = 2560 字节，单次都不足阈值
+			_, _ = w.Write([]byte(strings.Repeat("x", 64)))
+		}
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("Accept-Encoding", "gzip")
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+
+	if got := rec.Header().Get("Content-Encoding"); got != "gzip" {
+		t.Fatalf("累计 2560 字节应压缩，Content-Encoding = %q", got)
+	}
+	zr, err := gzip.NewReader(rec.Body)
+	if err != nil {
+		t.Fatalf("不是合法 gzip: %v", err)
+	}
+	defer zr.Close()
+	got, _ := io.ReadAll(zr)
+	if len(got) != 2560 {
+		t.Errorf("解压后 %d 字节，期望 2560", len(got))
+	}
+}
+
+// 只写状态码不写 body（如 302/303 跳转）：不能产生 gzip 头，也不能丢掉状态码
+func TestGzipRedirectWithoutBody(t *testing.T) {
+	h := Gzip()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Location", "/admin/login")
+		w.WriteHeader(http.StatusSeeOther)
+	}))
+
+	req := httptest.NewRequest(http.MethodGet, "/x", nil)
+	req.Header.Set("Accept-Encoding", "gzip")
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusSeeOther {
+		t.Fatalf("状态码 = %d，期望 303", rec.Code)
+	}
+	if ce := rec.Header().Get("Content-Encoding"); ce != "" {
+		t.Errorf("无 body 的跳转不应带 Content-Encoding，实际 %q", ce)
+	}
+	if rec.Body.Len() != 0 {
+		t.Errorf("不应有响应体，实际 %d 字节", rec.Body.Len())
+	}
+}
+
 // 静态资源与健康检查不建会话：否则一个首页几十个资源等于几十条 INSERT。
 func TestSkipSessionPath(t *testing.T) {
 	cases := []struct {

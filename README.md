@@ -75,6 +75,7 @@ gocms/
 │   ├── model/                   # 数据结构 + GORM 映射标签（gorm.go 为唯一权威定义）
 │   ├── repository/              # 13 个仓储，GORM 实现（事务 / upsert / 批量关联）
 │   ├── adminpath/               # 后台路径解析：校验、保留字、历史路径、原子热替换
+│   ├── viewcount/                # 浏览量内存聚合：IP 去重 + 定时批量落库
 │   ├── middleware/               # 含 ipguard.go（后台 IP 白名单守卫）
 │   ├── security/                # bcrypt / HTML 净化 / Slugify / 安全重定向
 │   ├── utils/                   # 分页、时间格式化、Markdown、通用小工具
@@ -345,3 +346,4 @@ cp -r themes/default themes/mytheme
 | 主题目录化 | 换皮不改代码，客户交付时替换 `themes/` 即可 |
 | 静态资源三种缓存策略 | uploads 内容不可变可一年，后台资源改了就生效，一刀切必然有一头出错 |
 | 自建 /healthz 而非只看端口 | 端口在听不代表能干活的，DB 掉线时要让上游摘节点 |
+| 浏览量内存聚合后批量落库 | 每次访问写一次库会把热文的行锁打满，且「刷新 +1」本身没有意义 |

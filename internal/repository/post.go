@@ -300,9 +300,45 @@ func (r *PostRepo) Delete(id uint64) error {
 }
 
 // UpdateViews 浏览量 +1
+//
+// 只保留给单条即时场景（如后台手动调整）。
+// 前台访问请走 viewcount.Counter：每次访问写一次库会把热文的行锁打满，
+// 而且「刷新一次 +1」本身也不符合浏览量的语义。
 func (r *PostRepo) UpdateViews(id uint64) {
 	_ = r.g.Model(&model.Post{}).Where("id = ?", id).
 		UpdateColumn("views", gorm.Expr("views + 1")).Error
+}
+
+// AddViews 批量累加浏览量。
+//
+// 一条 UPDATE 处理整批，避免 N 次往返：
+//
+//	UPDATE posts SET views = views + CASE id WHEN 1 THEN 5 WHEN 2 THEN 3 END WHERE id IN (1,2)
+//
+// id 与增量都是整型，直接内联是安全的；不用参数占位是因为 CASE 里的
+// WHEN 值无法用 ? 批量绑定（占位符数量随 map 长度变化）。
+func (r *PostRepo) AddViews(deltas map[uint64]int64) error {
+	if len(deltas) == 0 {
+		return nil
+	}
+	var sb strings.Builder
+	ids := make([]uint64, 0, len(deltas))
+	sb.WriteString("views + CASE id")
+	for id, d := range deltas {
+		if d == 0 {
+			continue
+		}
+		fmt.Fprintf(&sb, " WHEN %d THEN %d", id, d)
+		ids = append(ids, id)
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	sb.WriteString(" END")
+
+	return wrap("累加浏览量", r.g.Model(&model.Post{}).
+		Where("id IN ?", ids).
+		UpdateColumn("views", gorm.Expr(sb.String())).Error)
 }
 
 // CountByStatus 按状态统计

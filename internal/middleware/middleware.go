@@ -157,10 +157,28 @@ func StaticCache(ap *adminpath.Resolver) Middleware {
 }
 
 // gzipWriter 包装 gzip
+// gzipMinSize 低于该字节数的响应不压缩。
+//
+// 小响应压缩后反而更大：gzip 头 + 尾固定 18~20 字节，
+// /healthz 的 63 字节 JSON 压完变 88 字节，还白花一次压缩的 CPU。
+const gzipMinSize = 512
+
+// gzipWriter 包装 gzip，并延迟决定「压不压」。
+//
+// 不能一进中间件就设 Content-Encoding 再压：那时还不知道响应有多大。
+// 这里先缓冲 gzipMinSize 字节，超了才真的压缩；没超就原样输出。
 type gzipWriter struct {
 	http.ResponseWriter
-	gz          *gzip.Writer
+	gz *gzip.Writer
+
+	// buf 缓冲「还没决定是否压缩」的前段数据
+	buf []byte
+	// status 暂存状态码，等决定压缩时再真正写头
+	status      int
 	wroteHeader bool
+	decided     bool
+	compressing bool
+
 	// skipBody 标记「无实体响应」（304 / 204）。
 	// 这类响应不能带 Content-Encoding，也不能写 gzip 尾字节，
 	// 否则协商缓存（ETag / If-Modified-Since）会拿到脏响应。
@@ -168,19 +186,22 @@ type gzipWriter struct {
 }
 
 func (g *gzipWriter) WriteHeader(code int) {
-	if !g.wroteHeader {
-		g.wroteHeader = true
-		if code == http.StatusNotModified || code == http.StatusNoContent {
-			g.skipBody = true
-			g.Header().Del("Content-Type")
-			g.Header().Del("Content-Encoding")
-			g.Header().Del("Content-Length")
-			g.ResponseWriter.WriteHeader(code)
-			return
-		}
+	if g.wroteHeader {
+		return
+	}
+	g.wroteHeader = true
+	g.status = code
+
+	// 无实体响应：立即写头，标记跳过 body
+	if code == http.StatusNotModified || code == http.StatusNoContent || code < http.StatusOK {
+		g.skipBody = true
+		g.decided = true
+		g.Header().Del("Content-Type")
+		g.Header().Del("Content-Encoding")
 		g.Header().Del("Content-Length")
 		g.ResponseWriter.WriteHeader(code)
 	}
+	// 其余情况压着不写，等 Write / finish 决定压不压
 }
 
 func (g *gzipWriter) Write(b []byte) (int, error) {
@@ -190,10 +211,55 @@ func (g *gzipWriter) Write(b []byte) (int, error) {
 	if g.skipBody {
 		return len(b), nil
 	}
-	return g.gz.Write(b)
+
+	if !g.decided {
+		g.buf = append(g.buf, b...)
+		if len(g.buf) < gzipMinSize {
+			return len(b), nil
+		}
+		// 越过阈值，转压缩
+		g.startCompress()
+		return len(b), nil
+	}
+	if g.compressing {
+		return g.gz.Write(b)
+	}
+	return g.ResponseWriter.Write(b)
 }
 
-// Gzip 压缩响应
+// startCompress 开始压缩，并把已缓冲的数据吐出去
+func (g *gzipWriter) startCompress() {
+	g.decided = true
+	g.compressing = true
+	g.Header().Set("Content-Encoding", "gzip")
+	g.Header().Del("Content-Length") // 压缩后长度未知
+	g.ResponseWriter.WriteHeader(g.status)
+	g.gz = gzip.NewWriter(g.ResponseWriter)
+	_, _ = g.gz.Write(g.buf)
+	g.buf = nil
+}
+
+// finish 收尾：未决的小响应原样输出，压缩过的补 gzip 尾。
+func (g *gzipWriter) finish() {
+	if g.skipBody {
+		return
+	}
+	if !g.decided {
+		// 小响应：不压缩
+		g.decided = true
+		g.ResponseWriter.WriteHeader(g.status)
+		if len(g.buf) > 0 {
+			_, _ = g.ResponseWriter.Write(g.buf)
+		}
+		g.buf = nil
+		return
+	}
+	if g.compressing && g.gz != nil {
+		_ = g.gz.Close()
+	}
+}
+
+// Gzip 压缩响应（小响应跳过压缩）
 func Gzip() Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -202,16 +268,11 @@ func Gzip() Middleware {
 				next.ServeHTTP(w, r)
 				return
 			}
-			w.Header().Set("Content-Encoding", "gzip")
+			// Vary 无条件设置：即使本次没压缩，也不能让缓存把两种变体混用
 			w.Header().Add("Vary", "Accept-Encoding")
-			gz := gzip.NewWriter(w)
-			gw := &gzipWriter{ResponseWriter: w, gz: gz}
-			// 304/204 不写 gzip 尾字节，否则空响应体会被塞进 20 字节脏数据
-			defer func() {
-				if !gw.skipBody {
-					_ = gz.Close()
-				}
-			}()
+
+			gw := &gzipWriter{ResponseWriter: w, status: http.StatusOK}
+			defer gw.finish()
 			next.ServeHTTP(gw, r)
 		})
 	}

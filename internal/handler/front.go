@@ -128,7 +128,13 @@ func (h *Handler) Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.repo.Post.UpdateViews(p.ID)
+	// 浏览量走内存聚合：同 IP 在窗口期内只算一次，定时批量落库。
+	// 计数器未装配时退回同步写库 —— 宁可慢一点也不丢数据。
+	if h.views != nil {
+		h.views.Hit(p.ID, utils.ClientIP(r))
+	} else {
+		h.repo.Post.UpdateViews(p.ID)
+	}
 
 	v := h.newView(r)
 	v.Post = p

@@ -25,6 +25,7 @@ import (
 	"github.com/example/gocms/internal/repository"
 	"github.com/example/gocms/internal/security"
 	"github.com/example/gocms/internal/utils"
+	"github.com/example/gocms/internal/viewcount"
 )
 
 // Handler 控制器集合
@@ -39,6 +40,9 @@ type Handler struct {
 	ap       *adminpath.Resolver
 	reloader reloader
 	ipGuard  *middleware.IPGuard
+
+	// views 浏览量聚合计数器；为 nil 时退回同步写库
+	views *viewcount.Counter
 
 	uploadDir string
 	themeRoot string
@@ -77,6 +81,9 @@ func (h *Handler) SetReloader(r reloader) { h.reloader = r }
 
 // SetIPGuard 注入后台 IP 白名单守卫，使设置页保存后立即生效。
 func (h *Handler) SetIPGuard(g *middleware.IPGuard) { h.ipGuard = g }
+
+// SetViewCounter 注入浏览量计数器。未注入时前台退回「每次访问同步写库」。
+func (h *Handler) SetViewCounter(c *viewcount.Counter) { h.views = c }
 
 // CleanupLimits 清理过期限流记录。
 // 按账号/按 IP 两个维度的 key 由外部输入决定，不清理会被大量随机用户名撑爆内存。

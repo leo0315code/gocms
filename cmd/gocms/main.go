@@ -23,6 +23,7 @@ import (
 	"github.com/example/gocms/internal/security"
 	"github.com/example/gocms/internal/seed"
 	"github.com/example/gocms/internal/utils"
+	"github.com/example/gocms/internal/viewcount"
 )
 
 func main() {
@@ -141,6 +142,15 @@ func main() {
 	}
 	h.SetIPGuard(ipGuard)
 
+	// 浏览量聚合：同 IP 在 10 分钟内只算一次，每 10 秒批量落库一次。
+	// 不用每次访问写库——热文的行锁会被打满，而且刷新就 +1 本身也没意义。
+	views := viewcount.New(repo.Post.AddViews, viewcount.Options{
+		Interval: 10 * time.Second,
+		Window:   10 * time.Minute,
+	})
+	go views.Run()
+	h.SetViewCounter(views)
+
 	// 路由容器：后台改路径后可原子重建，无需重启
 	rt := router.NewDynamic(func() http.Handler {
 		return router.Build(cfg, repo, h, ap, ipGuard, cfg.UploadDir, themeRoot, "web")
@@ -214,6 +224,8 @@ func main() {
 	if err := srv.Shutdown(ctx); err != nil {
 		slog.Error("关闭超时", "err", err)
 	}
+	// 必须放在 Shutdown 之后：先停止接收新请求，再把最后一批浏览量落库
+	views.Close()
 	slog.Info("已退出")
 }
 
