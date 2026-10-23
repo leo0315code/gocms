@@ -88,13 +88,25 @@ func (f *PostFilter) order(g *gorm.DB) *gorm.DB {
 	}
 }
 
-// Search 全文/模糊搜索（标题+摘要+正文）
+// Search 全文/模糊搜索（标题+摘要+正文）。
+//
+// 关键字 ≥ 2 字符时走 ngram FULLTEXT 布尔短语检索（倒排索引，不扫全表）；
+// 单字符检索词低于 ngram 最小 token 长度（服务端默认 2），索引里根本没有
+// 对应 token，退回 LIKE 兜底，行为与旧实现一致。
+//
+// 已知行为：InnoDB FULLTEXT 对刚提交的行有极短的可见延迟，等价于
+// 「刚发布的文章可能晚几秒才被搜到」，对站内搜索无实际影响。
 func (r *PostRepo) Search(keyword string, page, perPage int) ([]*model.Post, int, error) {
-	kw := "%" + keyword + "%"
 	base := r.g.Model(&model.Post{}).
 		Where("status = ?", "published").
-		Where("(published_at IS NULL OR published_at <= ?)", time.Now()).
-		Where("(title LIKE ? OR summary LIKE ? OR content LIKE ?)", kw, kw, kw)
+		Where("(published_at IS NULL OR published_at <= ?)", time.Now())
+
+	if ft := fulltextKeyword(keyword); ft != "" {
+		base = base.Where("MATCH(title, summary, content) AGAINST(? IN BOOLEAN MODE)", ft)
+	} else {
+		kw := "%" + keyword + "%"
+		base = base.Where("(title LIKE ? OR summary LIKE ? OR content LIKE ?)", kw, kw, kw)
+	}
 
 	var total int64
 	if err := base.Count(&total).Error; err != nil {
@@ -115,6 +127,30 @@ func (r *PostRepo) Search(keyword string, page, perPage int) ([]*model.Post, int
 		return nil, 0, wrap("搜索文章", err)
 	}
 	return out, int(total), nil
+}
+
+// fulltextKeyword 把检索词转成布尔模式的短语检索串；返回空串表示不适合走
+// FULLTEXT，调用方应退回 LIKE。
+//
+// 用双引号包成短语而不是裸词：布尔模式下裸的 ngram 分词结果之间是 OR 关系，
+// 「花园」会被拆成 花/园 两个 token 各自命中，出现「花盆、园丁」这种误召回；
+// 短语检索要求分词结果连续出现，等效于子串匹配。
+func fulltextKeyword(kw string) string {
+	kw = strings.TrimSpace(kw)
+	if len([]rune(kw)) < 2 {
+		return ""
+	}
+	// 短语串内的双引号与反斜杠会破坏布尔模式语法，直接剥掉
+	var b strings.Builder
+	for _, r := range kw {
+		if r != '"' && r != '\\' {
+			b.WriteRune(r)
+		}
+	}
+	if strings.TrimSpace(b.String()) == "" {
+		return ""
+	}
+	return `"` + b.String() + `"`
 }
 
 // List 条件列表

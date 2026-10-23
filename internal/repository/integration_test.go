@@ -335,6 +335,91 @@ func TestAddViewsBatch(t *testing.T) {
 	}
 }
 
+// 测试搜索：≥2 字符走 ngram FULLTEXT 短语检索（子串命中、草稿不可见），
+// 单字符低于 ngram 最小 token 长度应退回 LIKE 而不是空结果或报错。
+// 关键字里的双引号不能破坏布尔模式语法。
+func TestSearchFulltext(t *testing.T) {
+	r := newTestRepo(t)
+	catID := mustCategory(t, r, "新闻", "news", 0)
+	now := time.Now()
+	create := func(title, slug, content, status string) {
+		p := &model.Post{
+			CategoryID: catID, UserID: 1, Title: title, Slug: slug,
+			Summary: "摘要", Content: content, ContentFormat: "html",
+			Status: status,
+		}
+		if status == "published" {
+			p.PublishedAt = &now
+		}
+		if _, err := r.Post.Create(p); err != nil {
+			t.Fatalf("创建文章 %s 失败: %v", title, err)
+		}
+	}
+	create("数字化转型实践", "post-ft-1", "本文介绍企业数字化转型的落地路径与工具选型。", "published")
+	create("无关文章", "post-ft-2", "今天天气不错，适合出门走走。", "published")
+	create("数字化转型草稿", "post-ft-3", "数字化转型", "draft")
+
+	// InnoDB FULLTEXT 对刚提交的行存在极短的可见延迟（并发写入时更明显，
+	// 本测试与 handler 包并行跑时可复现）。这里轮询等待而不是立即断言，
+	// 等不到才是真回归。
+	searchTotal := func(kw string) int {
+		t.Helper()
+		_, total, err := r.Post.Search(kw, 1, 10)
+		if err != nil {
+			t.Fatalf("搜索 %q 失败: %v", kw, err)
+		}
+		return total
+	}
+	waitHit := func(kw string, want int) {
+		t.Helper()
+		deadline := time.Now().Add(3 * time.Second)
+		for {
+			if got := searchTotal(kw); got == want {
+				return
+			}
+			if time.Now().After(deadline) {
+				t.Fatalf("等待 %q 命中 %d 条超时，当前 %d", kw, want, searchTotal(kw))
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+	}
+
+	// 中文子串命中正文，且草稿不可见
+	waitHit("数字化转型", 1)
+	list, total, err := r.Post.Search("数字化转型", 1, 10)
+	if err != nil {
+		t.Fatalf("搜索失败: %v", err)
+	}
+	if total != 1 || len(list) != 1 || list[0].Slug != "post-ft-1" {
+		t.Fatalf("中文搜索 total = %d，期望仅命中 post-ft-1", total)
+	}
+
+	// 关键字带双引号：剥掉后仍按短语检索，不应报错也不应误召回
+	deadline := time.Now().Add(3 * time.Second)
+	for {
+		_, total, err = r.Post.Search(`数字化"转型`, 1, 10)
+		if err != nil {
+			t.Fatalf("带引号关键字搜索失败: %v", err)
+		}
+		if total == 1 || time.Now().After(deadline) {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	if total != 1 {
+		t.Errorf("带引号关键字 total = %d，期望 1", total)
+	}
+
+	// 单字符退回 LIKE 兜底
+	_, total, err = r.Post.Search("气", 1, 10)
+	if err != nil {
+		t.Fatalf("单字符搜索失败: %v", err)
+	}
+	if total != 1 {
+		t.Errorf("单字符搜索 total = %d，期望 1（LIKE 兜底命中 post-ft-2）", total)
+	}
+}
+
 // 小工具：按名称找标签的行 ID / slug
 func tagIDOf(t *testing.T, r *Repo, name string) uint64 {
 	t.Helper()
