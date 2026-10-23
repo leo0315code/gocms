@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/example/gocms/internal/adminpath"
 	"github.com/example/gocms/internal/config"
@@ -400,9 +401,15 @@ func isHTMX(r *http.Request) bool {
 	return r.Header.Get("HX-Request") == "true"
 }
 
+// truncate 按字节上限截断，但回退到 UTF-8 字符边界再下刀——
+// 切在多字节字符中间会产生非法 UTF-8 序列，MySQL strict mode 会拒绝写入
+// sessions 表，导致该请求永远无法建立持久会话。
 func truncate(s string, n int) string {
 	if len(s) <= n {
 		return s
+	}
+	for n > 0 && !utf8.RuneStart(s[n]) {
+		n--
 	}
 	return s[:n]
 }

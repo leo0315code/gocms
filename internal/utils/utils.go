@@ -215,14 +215,22 @@ func SetTrustProxy(v bool) { trustProxy.Store(v) }
 //
 // 仅在 TRUST_PROXY=1 时才读取代理头；否则一律用 TCP 连接的对端地址，
 // 避免攻击者用伪造头绕过登录限流或 IP 白名单。
+//
+// X-Forwarded-For 是追加式头：客户端可以在请求里自带任意个 IP，代理只把
+// 自己看到的对端地址追加到末尾。所以最左侧完全由攻击者控制，可信的只有
+// 最右侧一跳（信任代理写入的值）——取 parts[0] 等于信任攻击者的自报家门。
+// 前提是只有一层可信代理；多层代理（如 CDN → Nginx）需要把 CDN 网段整体
+// 纳入信任，由 Nginx 用 real_ip 模块先还原，再传单个真实 IP。
 func ClientIP(r *http.Request) string {
 	if trustProxy.Load() {
+		// X-Real-IP 由代理直接覆盖写入（nginx: proxy_set_header X-Real-IP $remote_addr），
+		// 不存在追加问题，可信；前提同样是代理确实覆盖而不是透传该头
 		if v := r.Header.Get("X-Real-IP"); v != "" {
 			return v
 		}
 		if v := r.Header.Get("X-Forwarded-For"); v != "" {
 			parts := strings.Split(v, ",")
-			return strings.TrimSpace(parts[0])
+			return strings.TrimSpace(parts[len(parts)-1])
 		}
 	}
 	return RemoteIP(r)

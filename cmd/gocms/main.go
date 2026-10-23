@@ -42,7 +42,7 @@ func main() {
 	// 是否信任反向代理头，必须在任何取 IP 的代码之前设置
 	utils.SetTrustProxy(cfg.TrustProxy)
 	if cfg.TrustProxy {
-		slog.Info("已启用 TRUST_PROXY：客户端 IP 取自 X-Real-IP / X-Forwarded-For，请确认前置代理会覆盖该头")
+		slog.Info("已启用 TRUST_PROXY：客户端 IP 取自 X-Real-IP / X-Forwarded-For（XFF 取最右侧一跳），请确认请求确经可信代理转发")
 	}
 
 	// 建库

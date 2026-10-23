@@ -18,7 +18,7 @@ Go 1.22+ · MySQL 8.0+ · GORM · Tailwind CSS（后台）· Alpine.js · 单二
 | 组件 | 版本 | 说明 |
 | --- | --- | --- |
 | Go | ≥ 1.22 | 需要 `net/http` 增强路由（`GET /a/{slug}`） |
-| MySQL | ≥ 8.0 | InnoDB / utf8mb4，需 `FULLTEXT` 支持（InnoDB 内置） |
+| MySQL | ≥ 8.0 | InnoDB / utf8mb4，站内搜索依赖内置 `ngram` FULLTEXT 解析器 |
 | Node.js | ≥ 18 | **仅改后台样式时需要**；日常编译部署不需要 |
 
 ### 2. 准备配置
@@ -347,4 +347,5 @@ cp -r themes/default themes/mytheme
 | 主题目录化 | 换皮不改代码，客户交付时替换 `themes/` 即可 |
 | 静态资源三种缓存策略 | uploads 内容不可变可一年，后台资源改了就生效，一刀切必然有一头出错 |
 | 自建 /healthz 而非只看端口 | 端口在听不代表能干活的，DB 掉线时要让上游摘节点 |
+| 站内搜索走 ngram FULLTEXT | `LIKE '%kw%'` 无法走索引，内容一多就是全表扫描；ngram 按 2 字滑窗建倒排，中文子串也能命中；检索词包成短语，避免裸分词后各 token OR 误召回 |
 | 浏览量内存聚合后批量落库 | 每次访问写一次库会把热文的行锁打满，且「刷新 +1」本身没有意义 |

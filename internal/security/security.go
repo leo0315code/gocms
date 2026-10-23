@@ -56,8 +56,10 @@ func ValidatePasswordStrength(p string) error {
 func RandomToken(n int) string {
 	b := make([]byte, n)
 	if _, err := rand.Read(b); err != nil {
-		// 极端情况下退化为时间戳，但正常不会发生
-		return strings.Repeat("0", n*2)
+		// 熵源读取失败意味着会话令牌与 CSRF 令牌都无法保证不可预测。
+		// 宁可让进程崩溃重启，也不能退化成可预测的固定值——
+		// 那等于向会话固定与 CSRF 伪造敞开大门。
+		panic("security: crypto/rand 读取失败: " + err.Error())
 	}
 	return hex.EncodeToString(b)
 }
