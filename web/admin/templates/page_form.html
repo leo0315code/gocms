@@ -1,0 +1,121 @@
+{{template "admin_head" .}}
+
+{{$page := .Item}}
+<form method="post" action="{{$.AdminPath}}/pages/save">
+<input type="hidden" name="csrf_token" value="{{.CSRF}}">
+<input type="hidden" name="id" value="{{$page.ID}}">
+<input type="hidden" name="content" id="postContent" value="{{$page.Content}}">
+<input type="hidden" name="content_format" id="contentFormat" value="{{default "html" $page.ContentFormat}}">
+
+<div class="grid gap-4 items-start grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px]">
+  <div class="space-y-4 min-w-0">
+    <div class="card">
+      <div class="px-4 pt-4 pb-3 border-b border-line">
+        <input type="text" name="title" id="postTitle" value="{{$page.Title}}" required maxlength="200"
+               placeholder="页面标题…"
+               class="w-full px-0 py-1 bg-transparent border-0 text-lg font-semibold text-ink
+                      placeholder:text-ink-3 focus:outline-none focus:ring-0">
+        <div class="flex items-center gap-2 mt-2.5">
+          <span class="text-xs text-ink-3 shrink-0">固定链接 /p/</span>
+          <input class="input !h-8 !text-xs max-w-[340px]" type="text" name="slug" id="postSlug"
+                 value="{{$page.Slug}}" placeholder="留空自动生成">
+        </div>
+      </div>
+
+      <div>
+        <div class="flex flex-wrap items-center gap-1 px-3 py-2 border-b border-line bg-surface-3/50">
+          <button type="button" class="etool" data-cmd="bold" title="加粗"><b>B</b></button>
+          <button type="button" class="etool" data-cmd="italic" title="斜体"><i>I</i></button>
+          <button type="button" class="etool" data-cmd="underline" title="下划线"><u>U</u></button>
+          <span class="w-px h-5 bg-line-2 mx-1"></span>
+          <button type="button" class="etool" data-cmd="formatBlock" data-val="h2" title="标题2">H2</button>
+          <button type="button" class="etool" data-cmd="formatBlock" data-val="h3" title="标题3">H3</button>
+          <button type="button" class="etool" data-cmd="formatBlock" data-val="p" title="正文">¶</button>
+          <span class="w-px h-5 bg-line-2 mx-1"></span>
+          <button type="button" class="etool" data-cmd="insertUnorderedList" title="列表">•≡</button>
+          <button type="button" class="etool" data-cmd="createLink" title="链接">🔗</button>
+          <button type="button" class="etool" data-cmd="insertImage" title="图片">🖼</button>
+
+          <div class="ml-auto flex items-center gap-1 p-0.5 rounded bg-surface-3">
+            <button type="button" class="editor-tab px-2.5 h-7 rounded text-xs font-medium bg-surface text-brand-700 shadow-card dark:text-brand-300" data-mode="html">富文本</button>
+            <button type="button" class="editor-tab px-2.5 h-7 rounded text-xs font-medium text-ink-3" data-mode="markdown">Markdown</button>
+          </div>
+        </div>
+
+        <div id="richWrap">
+          <div id="editorArea" contenteditable="true" data-placeholder="输入页面内容…"
+               class="min-h-[380px] px-4 py-3 text-[14px] leading-relaxed text-ink outline-none">{{safeHTML $page.Content}}</div>
+        </div>
+        <div id="mdWrap" class="hidden">
+          <textarea id="mdArea" placeholder="使用 Markdown 语法撰写…"
+                    class="w-full min-h-[380px] px-4 py-3 bg-transparent border-0 font-mono text-[13px] leading-relaxed text-ink resize-y focus:outline-none">{{$page.Content}}</textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <aside class="space-y-4">
+    <div class="card">
+      <div class="card-head"><h2>发布</h2></div>
+      <div class="p-4 space-y-3.5">
+        <div>
+          <label class="field-label" for="status">状态</label>
+          <select class="input" name="status" id="status">
+            <option value="published" {{if eq $page.Status "published"}}selected{{end}}>已发布</option>
+            <option value="draft" {{if eq $page.Status "draft"}}selected{{end}}>草稿</option>
+          </select>
+        </div>
+        <label class="flex items-center gap-2 text-[13px] cursor-pointer">
+          <input type="checkbox" class="checkbox" name="is_nav" value="1" {{if bool $page.IsNav}}checked{{end}}> 在页脚/侧栏中显示
+        </label>
+        <div>
+          <label class="field-label" for="sort">排序</label>
+          <input class="input" type="number" name="sort" id="sort" value="{{$page.Sort}}">
+        </div>
+        <div class="space-y-2 pt-2 border-t border-line">
+          <button class="btn btn-primary btn-block" type="submit">保存页面</button>
+          <a class="btn btn-ghost btn-block" href="{{$.AdminPath}}/pages">返回列表</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>SEO</h2></div>
+      <div class="p-4 space-y-3.5">
+        <div>
+          <label class="field-label" for="seo_title">SEO 标题</label>
+          <input class="input" type="text" name="seo_title" id="seo_title" value="{{$page.SEOTitle}}" maxlength="200">
+        </div>
+        <div>
+          <label class="field-label" for="seo_keywords">SEO 关键词</label>
+          <input class="input" type="text" name="seo_keywords" id="seo_keywords" value="{{$page.SEOKeywords}}" maxlength="300">
+        </div>
+        <div>
+          <label class="field-label" for="seo_description">SEO 描述</label>
+          <textarea class="input" name="seo_description" id="seo_description" rows="2" maxlength="500">{{$page.SEODescription}}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>封面与模板</h2></div>
+      <div class="p-4 space-y-3.5">
+        <div>
+          <div class="w-full h-[100px] rounded border border-line bg-surface-3 grid place-items-center overflow-hidden text-xs text-ink-3 mb-2.5"
+               id="pv_cover">{{if $page.Cover}}<img src="{{$page.Cover}}" alt="" class="w-full h-full object-cover">{{else}}无图{{end}}</div>
+          <div class="flex items-center gap-2">
+            <input class="input flex-1 min-w-0" type="text" name="cover" id="cover" value="{{$page.Cover}}" placeholder="图片地址">
+            <button type="button" class="btn btn-ghost btn-sm shrink-0" onclick="pickImage('cover','pv_cover')">上传</button>
+          </div>
+        </div>
+        <div>
+          <label class="field-label" for="template">自定义模板</label>
+          <input class="input" type="text" name="template" id="template" value="{{$page.Template}}" placeholder="如 page-contact.html">
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+</form>
+
+{{template "admin_foot" .}}

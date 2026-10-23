@@ -1,0 +1,53 @@
+{{template "head" .}}
+
+<div class="page-hero">
+  <div class="container">
+    {{template "breadcrumb" .}}
+    <h1 class="page-title">{{.Page.Title}}</h1>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container page-container">
+    <div class="prose">
+      {{render .Page.ContentFormat .Page.Content}}
+    </div>
+  </div>
+</section>
+
+{{if eq .Page.Slug "contact"}}
+<section class="section section-alt" id="message">
+  <div class="container contact-wrap">
+    <div class="contact-info">
+      <h2 class="section-title">联系我们</h2>
+      <ul class="contact-list">
+        {{if .Site.contact_phone}}<li><span class="ci-label">电话</span><a href="tel:{{.Site.contact_phone}}">{{.Site.contact_phone}}</a></li>{{end}}
+        {{if .Site.contact_email}}<li><span class="ci-label">邮箱</span><a href="mailto:{{.Site.contact_email}}">{{.Site.contact_email}}</a></li>{{end}}
+        {{if .Site.contact_address}}<li><span class="ci-label">地址</span>{{.Site.contact_address}}</li>{{end}}
+        {{if .Site.contact_hours}}<li><span class="ci-label">时间</span>{{.Site.contact_hours}}</li>{{end}}
+      </ul>
+    </div>
+    <form class="contact-form" method="post" action="/message">
+      <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+      <input type="hidden" name="back" value="/p/{{.Page.Slug}}">
+      <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <h3>在线留言</h3>
+      <div class="form-row">
+        <label>姓名 <em>*</em><input type="text" name="name" required maxlength="50" placeholder="您的称呼"></label>
+        <label>电话<input type="tel" name="phone" maxlength="40" placeholder="手机或座机"></label>
+      </div>
+      <div class="form-row">
+        <label>邮箱<input type="email" name="email" maxlength="120" placeholder="example@company.com"></label>
+        <label>公司<input type="text" name="company" maxlength="150" placeholder="公司名称"></label>
+      </div>
+      <label class="full">需求描述 <em>*</em>
+        <textarea name="content" rows="5" required maxlength="2000" placeholder="请简单描述您的需求、行业与大致预算…"></textarea>
+      </label>
+      <button class="btn btn-primary btn-lg" type="submit">提交留言</button>
+      <p class="form-hint">我们承诺仅将您的信息用于本次业务沟通。</p>
+    </form>
+  </div>
+</section>
+{{end}}
+
+{{template "foot" .}}

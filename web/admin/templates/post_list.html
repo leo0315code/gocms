@@ -1,0 +1,120 @@
+{{template "admin_head" .}}
+
+<div class="card">
+  {{/* 工具栏：Tab + 筛选 + 主按钮 */}}
+  <div class="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-line">
+    <div class="flex items-center gap-1 p-0.5 rounded bg-surface-3">
+      <a class="px-2.5 h-7 inline-flex items-center rounded text-[13px] font-medium transition-colors
+                {{if eq .Status ""}}bg-surface text-ink shadow-card{{else}}text-ink-3 hover:text-ink{{end}}"
+         href="{{$.AdminPath}}/posts">全部</a>
+      <a class="px-2.5 h-7 inline-flex items-center rounded text-[13px] font-medium transition-colors
+                {{if eq .Status "published"}}bg-surface text-ink shadow-card{{else}}text-ink-3 hover:text-ink{{end}}"
+         href="{{$.AdminPath}}/posts?status=published">已发布</a>
+      <a class="px-2.5 h-7 inline-flex items-center rounded text-[13px] font-medium transition-colors
+                {{if eq .Status "draft"}}bg-surface text-ink shadow-card{{else}}text-ink-3 hover:text-ink{{end}}"
+         href="{{$.AdminPath}}/posts?status=draft">草稿</a>
+    </div>
+
+    <form method="get" action="{{$.AdminPath}}/posts" class="flex items-center gap-2 ml-auto">
+      <input type="hidden" name="status" value="{{.Status}}">
+      <select name="cat" onchange="this.form.submit()" class="input !w-[150px]">
+        <option value="0">全部栏目</option>
+        {{range .CatTree}}
+        <option value="{{.ID}}">{{.Name}}</option>
+        {{range .Children}}<option value="{{.ID}}">　{{.Name}}</option>{{end}}
+        {{end}}
+      </select>
+      <input type="search" name="q" value="{{.Query}}" placeholder="搜索标题…" class="input !w-[180px]">
+      <button class="btn btn-ghost" type="submit">搜索</button>
+    </form>
+
+    <a class="btn btn-primary" href="{{$.AdminPath}}/posts/new">+ 写文章</a>
+  </div>
+
+  {{if .Items}}
+  <form method="post" action="{{$.AdminPath}}/posts/bulk" id="bulkForm"
+        x-data="{sel:0, all:false}">
+    <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+
+    {{/* 批量操作条：有勾选才出现 */}}
+    <div x-show="sel > 0" x-transition.opacity
+         class="flex items-center gap-2.5 px-4 py-2.5 border-b border-line bg-brand-50 dark:bg-brand-500/10">
+      <span class="text-[13px]">已选 <b x-text="sel">0</b> 项</span>
+      <button class="btn btn-sm btn-ghost" name="action" value="publish" type="submit">发布</button>
+      <button class="btn btn-sm btn-ghost" name="action" value="draft" type="submit">转草稿</button>
+      <button class="btn btn-sm btn-danger" name="action" value="delete" type="submit"
+              onclick="return confirm('确认删除选中的文章？该操作不可恢复。')">删除</button>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr>
+            <th class="w-[38px]">
+              <input type="checkbox" class="checkbox" x-model="all"
+                     @change="document.querySelectorAll('input[name=ids]').forEach(cb => { cb.checked = all; }); sel = all ? {{len .Items}} : 0">
+            </th>
+            <th>标题</th>
+            <th class="w-[120px]">栏目</th>
+            <th class="w-[90px]">状态</th>
+            <th class="w-[70px]">浏览</th>
+            <th class="w-[130px]">发布时间</th>
+            <th class="w-[110px]"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {{range .Items}}
+          <tr>
+            <td>
+              <input type="checkbox" name="ids" value="{{.ID}}" class="checkbox"
+                     @change="sel = document.querySelectorAll('input[name=ids]:checked').length">
+            </td>
+            <td>
+              <a class="title-cell" href="{{$.AdminPath}}/posts/{{.ID}}/edit">{{.Title}}</a>
+              {{if .IsTop}}<span class="badge badge-orange ml-1.5">置顶</span>{{end}}
+              {{if .IsRecommend}}<span class="badge badge-blue ml-1">推荐</span>{{end}}
+              <div class="cell-sub">/a/{{.Slug}}</div>
+            </td>
+            <td>{{if .Category}}{{.Category.Name}}{{else}}<span class="text-ink-3">未分类</span>{{end}}</td>
+            <td>
+              {{if eq .Status "published"}}<span class="badge badge-green">已发布</span>
+              {{else if eq .Status "draft"}}<span class="badge badge-gray">草稿</span>
+              {{else}}<span class="badge badge-red">回收站</span>{{end}}
+            </td>
+            <td class="tabular-nums">{{.Views}}</td>
+            <td class="cell-sub whitespace-nowrap">{{datetime .PublishedAt}}</td>
+            <td class="col-actions">
+              <div class="flex items-center justify-end gap-3">
+                <a class="btn-link" href="/a/{{.Slug}}" target="_blank" rel="noopener">预览</a>
+                <a class="btn-link" href="{{$.AdminPath}}/posts/{{.ID}}/edit">编辑</a>
+              </div>
+            </td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+  </form>
+  {{else}}
+  <div class="px-4 py-16 text-center">
+    <h3 class="text-sm font-semibold mb-1">暂无文章</h3>
+    <p class="text-[13px] text-ink-3 mb-4">换个筛选条件，或创建新文章。</p>
+    <a class="btn btn-primary btn-sm" href="{{$.AdminPath}}/posts/new">+ 写文章</a>
+  </div>
+  {{end}}
+
+  {{if .Pagination}}
+  <div class="card-foot">
+    <span class="text-xs text-ink-3">共 {{.Total}} 篇</span>
+    <div class="flex items-center gap-1">
+      {{if .Pagination.HasPrev}}<a class="pager-btn" href="{{.Pagination.PrevURL}}">上一页</a>{{else}}<span class="pager-btn disabled">上一页</span>{{end}}
+      {{range .Pagination.Pages}}
+        {{if .Current}}<span class="pager-btn current">{{.Num}}</span>{{else}}<a class="pager-btn" href="{{.URL}}">{{.Num}}</a>{{end}}
+      {{end}}
+      {{if .Pagination.HasNext}}<a class="pager-btn" href="{{.Pagination.NextURL}}">下一页</a>{{else}}<span class="pager-btn disabled">下一页</span>{{end}}
+    </div>
+  </div>
+  {{end}}
+</div>
+
+{{template "admin_foot" .}}

@@ -1,0 +1,13 @@
+{{define "breadcrumb"}}
+{{if .Breadcrumb}}
+<nav class="breadcrumb" aria-label="面包屑">
+  {{range $i, $c := .Breadcrumb}}
+    {{if lt $i (sub (len $.Breadcrumb) 1)}}
+      <a href="{{$c.URL}}">{{$c.Name}}</a><span class="sep">/</span>
+    {{else}}
+      <span class="current">{{$c.Name}}</span>
+    {{end}}
+  {{end}}
+</nav>
+{{end}}
+{{end}}

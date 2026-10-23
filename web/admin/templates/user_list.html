@@ -1,0 +1,92 @@
+{{template "admin_head" .}}
+
+<div class="grid gap-4 items-start grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px]">
+  <div class="card">
+    <div class="card-head"><h2>用户列表</h2></div>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>用户</th><th class="w-[120px]">角色</th><th class="w-[80px]">状态</th><th class="w-[140px]">最后登录</th><th class="w-[110px]"></th></tr></thead>
+        <tbody>
+          {{range .Items}}
+          <tr>
+            <td>
+              <span class="title-cell">{{.DisplayName}}</span>
+              <div class="cell-sub">{{.Username}}{{if .Email}} · {{.Email}}{{end}}</div>
+            </td>
+            <td>
+              {{if eq .Role "admin"}}<span class="badge badge-blue">超级管理员</span>
+              {{else if eq .Role "editor"}}<span class="badge badge-green">内容编辑</span>
+              {{else}}<span class="badge badge-gray">只读用户</span>{{end}}
+            </td>
+            <td>{{if eq .Status 1}}<span class="badge badge-green">正常</span>{{else}}<span class="badge badge-red">禁用</span>{{end}}</td>
+            <td class="cell-sub leading-relaxed">{{if .LastLoginAt}}{{datetime .LastLoginAt}}<br>{{.LastLoginIP}}{{else}}从未登录{{end}}</td>
+            <td class="col-actions">
+              <div class="flex items-center justify-end gap-3">
+                <a class="btn-link" href="{{$.AdminPath}}/users?edit={{.ID}}">编辑</a>
+                <form method="post" action="{{$.AdminPath}}/users/{{.ID}}/delete" class="inline"
+                      data-confirm="确认删除用户「{{.Username}}」？">
+                  <input type="hidden" name="csrf_token" value="{{$.CSRF}}">
+                  <button class="btn-link text-red-600 hover:text-red-700 dark:text-red-400" type="submit">删除</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <form method="post" action="{{$.AdminPath}}/users/save" class="card">
+    <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+    <div class="card-head"><h2>{{if .Item}}编辑用户{{else}}新建用户{{end}}</h2></div>
+    <div class="p-4 space-y-3.5">
+      <input type="hidden" name="id" value="{{if .Item}}{{.Item.ID}}{{end}}">
+
+      <div>
+        <label class="field-label" for="username">用户名 <span class="text-red-500">*</span></label>
+        <input class="input" type="text" name="username" id="username" required maxlength="50"
+               value="{{if .Item}}{{.Item.Username}}{{end}}" {{if .Item}}readonly{{end}} placeholder="登录账号">
+        {{if .Item}}<span class="field-hint">用户名创建后不可修改。</span>{{end}}
+      </div>
+
+      <div>
+        <label class="field-label" for="password">密码 {{if .Item}}<span class="text-ink-3 font-normal">（留空不修改）</span>{{else}}<span class="text-red-500">*</span>{{end}}</label>
+        <input class="input" type="password" name="password" id="password" {{if not .Item}}required{{end}}
+               autocomplete="new-password" placeholder="至少 8 位，含字母与数字">
+      </div>
+
+      <div>
+        <label class="field-label" for="nickname">昵称</label>
+        <input class="input" type="text" name="nickname" id="nickname" maxlength="80" value="{{if .Item}}{{.Item.Nickname}}{{end}}">
+      </div>
+
+      <div>
+        <label class="field-label" for="email">邮箱</label>
+        <input class="input" type="email" name="email" id="email" maxlength="120" value="{{if .Item}}{{.Item.Email}}{{end}}">
+      </div>
+
+      <div>
+        <label class="field-label" for="role">角色</label>
+        <select class="input" name="role" id="role">
+          <option value="admin" {{if .Item}}{{if eq .Item.Role "admin"}}selected{{end}}{{end}}>超级管理员（全部权限）</option>
+          <option value="editor" {{if .Item}}{{if eq .Item.Role "editor"}}selected{{end}}{{end}}>内容编辑（内容与运营）</option>
+          <option value="viewer" {{if .Item}}{{if eq .Item.Role "viewer"}}selected{{end}}{{end}}>只读用户（仅查看）</option>
+        </select>
+      </div>
+
+      {{if .Item}}
+      <label class="flex items-center gap-2 text-[13px] cursor-pointer">
+        <input type="checkbox" class="checkbox" name="status" value="1" {{if eq .Item.Status 1}}checked{{end}}> 账号启用
+      </label>
+      {{end}}
+
+      <div class="space-y-2 pt-1">
+        <button class="btn btn-primary btn-block" type="submit">{{if .Item}}保存用户{{else}}+ 创建用户{{end}}</button>
+        {{if .Item}}<a class="btn btn-ghost btn-block" href="{{$.AdminPath}}/users">取消编辑</a>{{end}}
+      </div>
+    </div>
+  </form>
+</div>
+
+{{template "admin_foot" .}}

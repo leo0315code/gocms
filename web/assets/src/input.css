@@ -1,0 +1,293 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   语义色变量
+   浅色/深色两套取值，Tailwind 的 surface / ink / line 色板直接引用这些变量，
+   因此模板里只需要写 bg-surface text-ink border-line，无需再写 dark: 变体。
+   ========================================================================== */
+
+@layer base {
+  :root {
+    --c-surface: 255 255 255;      /* 卡片、侧边栏 */
+    --c-surface-2: 245 246 249;    /* 页面底色 */
+    --c-surface-3: 243 244 247;    /* 表头、悬浮态 */
+
+    --c-ink: 17 24 39;             /* 主文字 */
+    --c-ink-2: 75 85 99;           /* 次要文字 */
+    --c-ink-3: 140 148 162;        /* 弱化文字 */
+
+    --c-line: 230 232 238;         /* 分隔线 */
+    --c-line-2: 211 215 224;       /* 强调边界 */
+  }
+
+  .dark {
+    --c-surface: 19 26 38;
+    --c-surface-2: 11 15 23;
+    --c-surface-3: 26 34 48;
+
+    --c-ink: 233 238 246;
+    --c-ink-2: 179 191 208;
+    --c-ink-3: 139 151 171;
+
+    --c-line: 33 43 60;
+    --c-line-2: 46 58 78;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-surface-2 text-ink antialiased;
+    transition: background-color .16s ease, color .16s ease;
+  }
+
+  /* 表单元素默认继承字体与配色，避免各浏览器默认样式不一致 */
+  input, select, textarea, button {
+    font: inherit;
+    color: inherit;
+  }
+}
+
+/* ==========================================================================
+   组件层
+   只保留 Tailwind 无法用工具类一次表达的组合（多状态、伪元素、滚动条等）。
+   能用一个 class 表达的一律在模板里写工具类。
+   ========================================================================== */
+
+@layer components {
+  /* ---------- 按钮 ---------- */
+  .btn {
+    @apply inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded
+           text-[13px] font-medium whitespace-nowrap
+           border border-transparent transition-colors
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40
+           disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-primary {
+    @apply bg-brand-600 text-white hover:bg-brand-700;
+  }
+  .btn-ghost {
+    @apply bg-surface text-ink-2 border-line hover:bg-surface-3 hover:text-ink;
+  }
+  .btn-danger {
+    @apply bg-red-600 text-white hover:bg-red-700;
+  }
+  .btn-sm {
+    @apply h-8 px-2.5 text-xs;
+  }
+  .btn-block {
+    @apply w-full;
+  }
+
+  /* 表格行内的文字按钮 */
+  .btn-link {
+    @apply text-[13px] text-brand-600 hover:text-brand-700 hover:underline
+           whitespace-nowrap dark:text-brand-400 dark:hover:text-brand-300;
+  }
+
+  /* ---------- 表单 ---------- */
+  .field-label {
+    @apply block text-[13px] font-medium text-ink-2 mb-1.5;
+  }
+  .field-hint {
+    @apply mt-1.5 text-xs leading-relaxed text-ink-3;
+  }
+  .input {
+    @apply w-full h-9 px-3 rounded border border-line-2 bg-surface text-[13px] text-ink
+           placeholder:text-ink-3
+           focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500
+           disabled:bg-surface-3 disabled:text-ink-3;
+  }
+  textarea.input {
+    @apply h-auto py-2 leading-relaxed;
+  }
+  select.input {
+    @apply pr-8 appearance-none cursor-pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238c94a2' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+  }
+  .checkbox {
+    @apply w-[15px] h-[15px] rounded-sm border-line-2 text-brand-600
+           focus:ring-2 focus:ring-brand-500/30 cursor-pointer;
+  }
+
+  /* ---------- 卡片 ---------- */
+  .card {
+    @apply bg-surface border border-line rounded-lg shadow-card;
+  }
+  .card-head {
+    @apply flex items-center justify-between gap-3 px-4 py-3 border-b border-line;
+  }
+  .card-head h2 {
+    @apply text-sm font-semibold text-ink;
+  }
+  .card-body {
+    @apply p-4;
+  }
+  .card-body-tight {
+    @apply p-0;
+  }
+  .card-foot {
+    @apply flex items-center justify-between gap-3 px-4 py-3 border-t border-line;
+  }
+
+  /* ---------- 徽标 ---------- */
+  .badge {
+    @apply inline-flex items-center h-5 px-2 rounded text-[11px] font-medium leading-none whitespace-nowrap;
+  }
+  .badge-green {
+    @apply bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300;
+  }
+  .badge-gray {
+    @apply bg-surface-3 text-ink-3;
+  }
+  .badge-red {
+    @apply bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-300;
+  }
+  .badge-blue {
+    @apply bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300;
+  }
+  .badge-orange {
+    @apply bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300;
+  }
+
+  /* ---------- 表格 ---------- */
+  .table-wrap {
+    @apply w-full overflow-x-auto;
+  }
+  table.data {
+    @apply w-full border-collapse text-[13px];
+    /* 窄屏下不压缩列宽，交给 .table-wrap 横向滚动 */
+    min-width: 620px;
+  }
+  table.data thead th {
+    @apply px-4 py-2.5 text-left text-xs font-medium text-ink-3
+           bg-surface-3 border-b border-line whitespace-nowrap;
+  }
+  table.data tbody td {
+    @apply px-4 py-3 border-b border-line align-middle;
+  }
+  table.data tbody tr:last-child td {
+    @apply border-b-0;
+  }
+  table.data tbody tr:hover {
+    @apply bg-surface-3/60;
+  }
+  .title-cell {
+    @apply font-medium text-ink hover:text-brand-600 dark:hover:text-brand-400;
+  }
+  .cell-sub {
+    @apply mt-0.5 text-xs text-ink-3;
+  }
+
+  /* 操作列：宽度收到内容宽度，且按钮绝不折行 —— 之前被压成竖排就是这里出问题 */
+  table.data .col-actions {
+    @apply w-px whitespace-nowrap text-right;
+  }
+
+  /* ---------- 导航 ---------- */
+  .nav-link {
+    @apply flex items-center gap-2.5 h-9 px-3 mx-2 rounded text-[13px] font-medium
+           text-ink-2 transition-colors
+           hover:bg-surface-3 hover:text-ink;
+  }
+  .nav-link.active {
+    @apply bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300;
+  }
+  .nav-group-title {
+    @apply px-5 pt-4 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink-3;
+  }
+
+  /* ---------- 分页 ---------- */
+  .pager-btn {
+    @apply inline-flex items-center justify-center min-w-[30px] h-[30px] px-2 rounded
+           text-[13px] text-ink-2 border border-line bg-surface
+           hover:bg-surface-3 hover:text-ink;
+  }
+  .pager-btn.current {
+    @apply bg-brand-600 text-white border-brand-600 hover:bg-brand-600 hover:text-white;
+  }
+  .pager-btn.disabled {
+    @apply opacity-40 pointer-events-none;
+  }
+
+  /* ---------- 提示条 ---------- */
+  .flash {
+    @apply mx-6 mt-4 px-4 py-2.5 rounded border text-[13px];
+  }
+  .flash-success {
+    @apply bg-emerald-50 border-emerald-200 text-emerald-800
+           dark:bg-emerald-500/10 dark:border-emerald-500/30 dark:text-emerald-300;
+  }
+  .flash-error {
+    @apply bg-red-50 border-red-200 text-red-800
+           dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-300;
+  }
+
+  /* ---------- 滚动条 ---------- */
+  .scroll-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--c-line-2)) transparent;
+  }
+  .scroll-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .scroll-thin::-webkit-scrollbar-thumb {
+    background: rgb(var(--c-line-2));
+    border-radius: 4px;
+  }
+  .scroll-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* ---------- 编辑器工具按钮 ---------- */
+  .etool {
+    @apply inline-flex items-center justify-center min-w-[28px] h-7 px-1.5 rounded
+           text-xs font-medium text-ink-2 bg-transparent border-0 cursor-pointer
+           transition-colors hover:bg-surface hover:text-ink;
+  }
+
+  /* ---------- 正文可编辑区占位符 ---------- */
+  #editorArea:empty::before {
+    content: attr(data-placeholder);
+    color: rgb(var(--c-ink-3));
+    pointer-events: none;
+  }
+
+  /* ---------- 正文排版（编辑器内所见即所得） ---------- */
+  #editorArea h2 {
+    @apply text-lg font-semibold mt-5 mb-2;
+  }
+  #editorArea h3 {
+    @apply text-base font-semibold mt-4 mb-1.5;
+  }
+  #editorArea p {
+    @apply my-2.5;
+  }
+  #editorArea ul {
+    @apply list-disc pl-6 my-2.5;
+  }
+  #editorArea ol {
+    @apply list-decimal pl-6 my-2.5;
+  }
+  #editorArea blockquote {
+    @apply border-l-[3px] border-brand-400 pl-3 my-3 text-ink-2;
+  }
+  #editorArea a {
+    @apply text-brand-600 underline dark:text-brand-400;
+  }
+  #editorArea img {
+    @apply max-w-full rounded my-3;
+  }
+  #editorArea hr {
+    @apply border-0 border-t border-line my-5;
+  }
+  #editorArea code {
+    @apply px-1 py-0.5 rounded bg-surface-3 font-mono text-[0.9em];
+  }
+}

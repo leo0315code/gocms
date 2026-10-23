@@ -1,0 +1,108 @@
+{{template "admin_head" .}}
+
+<div class="grid gap-4 items-start grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px]">
+  <div class="card">
+    <div class="card-head"><h2>轮播列表</h2><span class="text-xs text-ink-3">显示在首页首屏</span></div>
+    {{if .Items}}
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th class="w-[80px]">预览</th><th>标题</th><th class="w-[80px]">位置</th><th class="w-[70px]">排序</th><th class="w-[80px]">状态</th><th class="w-[110px]"></th></tr></thead>
+        <tbody>
+          {{range .Items}}
+          <tr>
+            <td>
+              <div class="w-16 h-10 rounded bg-surface-3 overflow-hidden">
+                {{if .Image}}<img src="{{.Image}}" alt="" class="w-full h-full object-cover">{{end}}
+              </div>
+            </td>
+            <td>
+              <div class="title-cell">{{default "（无标题）" .Title}}</div>
+              {{if .Subtitle}}<div class="cell-sub">{{excerpt .Subtitle 30}}</div>{{end}}
+            </td>
+            <td class="text-ink-2">{{.Position}}</td>
+            <td class="tabular-nums">{{.Sort}}</td>
+            <td>{{if bool .IsShow}}<span class="badge badge-green">显示</span>{{else}}<span class="badge badge-gray">隐藏</span>{{end}}</td>
+            <td class="col-actions">
+              <div class="flex items-center justify-end gap-3">
+                <a class="btn-link" href="{{$.AdminPath}}/banners?edit={{.ID}}">编辑</a>
+                <form method="post" action="{{$.AdminPath}}/banners/{{.ID}}/delete" class="inline"
+                      data-confirm="确认删除该轮播？">
+                  <input type="hidden" name="csrf_token" value="{{$.CSRF}}">
+                  <button class="btn-link text-red-600 hover:text-red-700 dark:text-red-400" type="submit">删除</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+    {{else}}
+    <div class="px-4 py-16 text-center">
+      <h3 class="text-sm font-semibold mb-1">还没有轮播</h3>
+      <p class="text-[13px] text-ink-3">添加 3 张左右的 Banner，让首页更有视觉冲击力。</p>
+    </div>
+    {{end}}
+  </div>
+
+  <form method="post" action="{{$.AdminPath}}/banners/save" class="card">
+    <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+    <div class="card-head"><h2>{{if .Item}}编辑轮播{{else}}添加轮播{{end}}</h2></div>
+    <div class="p-4 space-y-3.5">
+      <input type="hidden" name="id" value="{{if .Item}}{{.Item.ID}}{{end}}">
+      <input type="hidden" name="position" value="home">
+
+      <div>
+        <label class="field-label" for="image">配图</label>
+        <div class="w-full h-24 rounded border border-line bg-surface-3 grid place-items-center overflow-hidden text-xs text-ink-3 mb-2"
+             id="pv_image">{{if .Item}}{{if .Item.Image}}<img src="{{.Item.Image}}" alt="" class="w-full h-full object-cover">{{else}}无图{{end}}{{else}}无图{{end}}</div>
+        <div class="flex items-center gap-2">
+          <input class="input flex-1 min-w-0" type="text" name="image" id="image"
+                 value="{{if .Item}}{{.Item.Image}}{{end}}" placeholder="图片地址（建议 1920×800）">
+          <button type="button" class="btn btn-ghost btn-sm shrink-0" onclick="pickImage('image','pv_image')">上传</button>
+        </div>
+      </div>
+
+      <div>
+        <label class="field-label" for="title">主标题</label>
+        <input class="input" type="text" name="title" id="title" maxlength="150"
+               value="{{if .Item}}{{.Item.Title}}{{end}}" placeholder="如 让技术驱动业务增长">
+      </div>
+
+      <div>
+        <label class="field-label" for="subtitle">副标题</label>
+        <input class="input" type="text" name="subtitle" id="subtitle" maxlength="255" value="{{if .Item}}{{.Item.Subtitle}}{{end}}">
+      </div>
+
+      <div>
+        <label class="field-label" for="url">跳转链接</label>
+        <input class="input" type="text" name="url" id="url"
+               value="{{if .Item}}{{.Item.URL}}{{end}}" placeholder="如 /c/solutions">
+      </div>
+
+      <div>
+        <label class="field-label" for="button_text">按钮文字</label>
+        <input class="input" type="text" name="button_text" id="button_text" maxlength="50"
+               value="{{if .Item}}{{.Item.ButtonText}}{{end}}" placeholder="如 了解详情">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 items-end">
+        <div>
+          <label class="field-label" for="sort">排序</label>
+          <input class="input" type="number" name="sort" id="sort" value="{{if .Item}}{{.Item.Sort}}{{else}}0{{end}}">
+        </div>
+        <label class="flex items-center gap-2 h-9 text-[13px] cursor-pointer">
+          <input type="checkbox" class="checkbox" name="is_show" value="1" {{if .Item}}{{if bool .Item.IsShow}}checked{{end}}{{else}}checked{{end}}>
+          显示
+        </label>
+      </div>
+
+      <div class="space-y-2 pt-1">
+        <button class="btn btn-primary btn-block" type="submit">保存</button>
+        {{if .Item}}<a class="btn btn-ghost btn-block" href="{{$.AdminPath}}/banners">取消编辑</a>{{end}}
+      </div>
+    </div>
+  </form>
+</div>
+
+{{template "admin_foot" .}}

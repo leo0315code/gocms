@@ -1,0 +1,112 @@
+{{template "admin_head" .}}
+
+{{/* 数据概览卡片：5 列自适应，窄屏自动折行 */}}
+<div class="grid gap-3 [grid-template-columns:repeat(auto-fit,minmax(180px,1fr))]">
+  <div class="card p-4">
+    <span class="block text-xs text-ink-3 mb-1.5">已发布文章</span>
+    <span class="block text-2xl font-semibold tabular-nums text-brand-600 dark:text-brand-400">{{.Stats.posts}}</span>
+    <span class="block mt-1 text-xs text-ink-3">累计 {{.Stats.views}} 次阅读</span>
+  </div>
+  <div class="card p-4">
+    <span class="block text-xs text-ink-3 mb-1.5">草稿</span>
+    <span class="block text-2xl font-semibold tabular-nums">{{.Stats.drafts}}</span>
+    <span class="block mt-1 text-xs"><a class="text-brand-600 hover:underline dark:text-brand-400" href="{{$.AdminPath}}/posts?status=draft">去处理 →</a></span>
+  </div>
+  <div class="card p-4">
+    <span class="block text-xs text-ink-3 mb-1.5">单页</span>
+    <span class="block text-2xl font-semibold tabular-nums">{{.Stats.pages}}</span>
+    <span class="block mt-1 text-xs text-ink-3">{{.Stats.categories}} 个栏目 / {{.Stats.tags}} 个标签</span>
+  </div>
+  <div class="card p-4">
+    <span class="block text-xs text-ink-3 mb-1.5">未读留言</span>
+    <span class="block text-2xl font-semibold tabular-nums {{if gt .Stats.unread 0}}text-red-600 dark:text-red-400{{end}}">{{.Stats.unread}}</span>
+    <span class="block mt-1 text-xs text-ink-3">共 {{.Stats.messages}} 条留言</span>
+  </div>
+  <div class="card p-4">
+    <span class="block text-xs text-ink-3 mb-1.5">媒体文件</span>
+    <span class="block text-2xl font-semibold tabular-nums">{{.Stats.media}}</span>
+    <span class="block mt-1 text-xs"><a class="text-brand-600 hover:underline dark:text-brand-400" href="{{$.AdminPath}}/media">管理媒体 →</a></span>
+  </div>
+</div>
+
+<div class="grid gap-4 mt-4 grid-cols-1 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+  <div class="card">
+    <div class="card-head">
+      <h2>最近文章</h2>
+      <a class="btn btn-ghost btn-sm" href="{{$.AdminPath}}/posts/new">+ 写文章</a>
+    </div>
+    {{if .Items}}
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr><th>标题</th><th class="w-[90px]">状态</th><th class="w-[70px]">浏览</th><th class="w-[130px]">更新时间</th></tr>
+        </thead>
+        <tbody>
+          {{range .Items}}
+          <tr>
+            <td>
+              <a class="title-cell" href="{{$.AdminPath}}/posts/{{.ID}}/edit">{{.Title}}</a>
+              {{if .Category}}<div class="cell-sub">{{.Category.Name}}</div>{{end}}
+            </td>
+            <td>
+              {{if eq .Status "published"}}<span class="badge badge-green">已发布</span>
+              {{else if eq .Status "draft"}}<span class="badge badge-gray">草稿</span>
+              {{else}}<span class="badge badge-red">回收站</span>{{end}}
+            </td>
+            <td class="tabular-nums">{{.Views}}</td>
+            <td class="cell-sub whitespace-nowrap">{{datetime .UpdatedAt}}</td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+    {{else}}
+    <div class="px-4 py-12 text-center">
+      <h3 class="text-sm font-semibold mb-1">还没有文章</h3>
+      <p class="text-[13px] text-ink-3 mb-4">发布第一篇文章，让站点有内容可看。</p>
+      <a class="btn btn-primary btn-sm" href="{{$.AdminPath}}/posts/new">写第一篇文章</a>
+    </div>
+    {{end}}
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h2>最新留言</h2>
+      <a class="btn btn-ghost btn-sm" href="{{$.AdminPath}}/messages">全部</a>
+    </div>
+    {{if .Items2}}
+    <div class="table-wrap">
+      <table class="data">
+        <tbody>
+          {{range .Items2}}
+          <tr>
+            <td>
+              <a class="title-cell" href="{{$.AdminPath}}/messages?view={{.ID}}">{{.Name}}</a>
+              {{if eq .Status "unread"}}<span class="badge badge-red ml-1.5">新</span>{{end}}
+              <div class="cell-sub">{{excerpt .Content 42}}</div>
+            </td>
+            <td class="cell-sub whitespace-nowrap text-right">{{date .CreatedAt}}</td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+    {{else}}
+    <div class="px-4 py-12 text-center text-[13px] text-ink-3">暂无留言</div>
+    {{end}}
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-head"><h2>快捷操作</h2></div>
+  <div class="px-4 py-3 flex flex-wrap gap-2">
+    <a class="btn btn-primary" href="{{$.AdminPath}}/posts/new">+ 新建文章</a>
+    <a class="btn btn-ghost" href="{{$.AdminPath}}/categories/new">+ 新建栏目</a>
+    <a class="btn btn-ghost" href="{{$.AdminPath}}/pages/new">+ 新建单页</a>
+    <a class="btn btn-ghost" href="{{$.AdminPath}}/media">上传图片</a>
+    <a class="btn btn-ghost" href="{{$.AdminPath}}/menus">配置导航</a>
+    <a class="btn btn-ghost" href="{{$.AdminPath}}/settings">系统设置</a>
+  </div>
+</div>
+
+{{template "admin_foot" .}}

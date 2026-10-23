@@ -1,0 +1,80 @@
+{{template "head" .}}
+
+{{template "hero" .}}
+
+{{if .Posts}}
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <h2 class="section-title">推荐内容</h2>
+        <p class="section-desc">精选的解决方案、行业洞察与客户实践</p>
+      </div>
+      <a class="link-more" href="/c/news">全部资讯 →</a>
+    </div>
+    <div class="post-grid">
+      {{range .Posts}}{{template "post-card" .}}{{end}}
+    </div>
+  </div>
+</section>
+{{end}}
+
+{{if .CatTree}}
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-head">
+      <div>
+        <h2 class="section-title">业务栏目</h2>
+        <p class="section-desc">按业务方向快速找到你需要的内容</p>
+      </div>
+    </div>
+    <div class="cat-grid">
+      {{range .CatTree}}
+      <a class="cat-card" href="/c/{{.Slug}}">
+        <div class="cat-card-head">
+          <h3>{{.Name}}</h3>
+          <span class="cat-count">{{.PostCount}} 篇</span>
+        </div>
+        <p>{{default "" .Description}}</p>
+        {{if .Children}}
+        <div class="cat-children">
+          {{range .Children}}<span>{{.Name}}</span>{{end}}
+        </div>
+        {{end}}
+      </a>
+      {{end}}
+    </div>
+  </div>
+</section>
+{{end}}
+
+{{if .Latest}}
+<section class="section">
+  <div class="container home-two-col">
+    <div class="home-main">
+      <div class="section-head">
+        <h2 class="section-title">最新发布</h2>
+        <a class="link-more" href="/c/news">更多 →</a>
+      </div>
+      <div class="post-list">
+        {{range .Latest}}{{template "post-card" .}}{{end}}
+      </div>
+    </div>
+    {{template "sidebar" .}}
+  </div>
+</section>
+{{end}}
+
+{{if .Site.footer_about}}
+<section class="cta-band">
+  <div class="container cta-inner">
+    <div>
+      <h2>需要一套适合自己业务的方案？</h2>
+      <p>留下联系方式，我们会在 1 个工作日内与你沟通。</p>
+    </div>
+    <a class="btn btn-primary btn-lg" href="/p/contact">立即咨询</a>
+  </div>
+</section>
+{{end}}
+
+{{template "foot" .}}

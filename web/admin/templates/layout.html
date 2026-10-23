@@ -1,0 +1,185 @@
+{{define "admin_head"}}<!DOCTYPE html>
+<html lang="zh-CN" class="">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{.Title}} · 管理后台</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="stylesheet" href="{{$.AdminPath}}/assets/app.css">
+{{/* 主题偏好键名为 gocms-theme；仍读一次旧的 admin-theme，避免升级后用户偏好丢失 */}}
+<script>(function(){try{var t=localStorage.getItem('gocms-theme')||localStorage.getItem('admin-theme')||'light';if(t==='dark')document.documentElement.classList.add('dark');}catch(e){}})();</script>
+<script>
+// Alpine store 必须在 Alpine 加载前注册
+document.addEventListener('alpine:init', function () {
+  Alpine.store('ui', {
+    nav: false,
+    toggleTheme: function () {
+      var root = document.documentElement;
+      var next = root.classList.contains('dark') ? 'light' : 'dark';
+      root.classList.toggle('dark', next === 'dark');
+      try { localStorage.setItem('gocms-theme', next); } catch (e) {}
+    }
+  });
+});
+</script>
+<script src="{{$.AdminPath}}/assets/alpine.js" defer></script>
+</head>
+<body class="min-h-screen bg-surface-2 text-ink" data-base-path="{{.AdminPath}}">
+<div class="flex min-h-screen">
+  {{template "admin_sidebar" .}}
+  <div class="flex-1 min-w-0 lg:pl-[232px]">
+    {{template "admin_topbar" .}}
+    <main class="px-4 sm:px-6 py-5">
+{{end}}
+
+{{define "admin_foot"}}
+    </main>
+  </div>
+</div>
+<script src="{{$.AdminPath}}/assets/app.js" defer></script>
+</body>
+</html>{{end}}
+
+{{define "admin_sidebar"}}
+{{/* 移动端遮罩由 Alpine 控制：x-show="$store.ui.nav" */}}
+<div x-data x-show="$store.ui.nav" x-transition.opacity
+     class="fixed inset-0 z-40 bg-black/40 lg:hidden" @click="$store.ui.nav=false"></div>
+
+<aside class="fixed inset-y-0 left-0 z-50 w-[232px] flex flex-col
+              bg-surface border-r border-line
+              -translate-x-full transition-transform duration-200
+              lg:translate-x-0"
+       :class="$store.ui.nav && 'translate-x-0'">
+  <div class="flex items-center gap-2.5 h-[60px] px-4 border-b border-line shrink-0">
+    <span class="w-8 h-8 rounded-[9px] grid place-items-center shrink-0
+                 bg-gradient-to-br from-brand-600 to-brand-400 text-white font-bold text-base">G</span>
+    <div class="min-w-0 leading-tight">
+      <strong class="block text-sm font-semibold truncate">GoCMS</strong>
+      <em class="block text-xs not-italic text-ink-3 truncate">{{.SiteName}}</em>
+    </div>
+  </div>
+
+  <nav class="flex-1 overflow-y-auto scroll-thin py-2 pb-4">
+    <a class="nav-link {{if eq .Menu "dashboard"}}active{{end}}" href="{{$.AdminPath}}">
+      <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+      <span>数据概览</span>
+    </a>
+
+    <div class="nav-group-title">内容</div>
+    <a class="nav-link {{if eq .Menu "posts"}}active{{end}}" href="{{$.AdminPath}}/posts">
+      <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h13l3 3v13H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>
+      <span>文章管理</span>
+    </a>
+    <a class="nav-link {{if eq .Menu "pages"}}active{{end}}" href="{{$.AdminPath}}/pages">
+      <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h6M9 16h6"/></svg>
+      <span>单页管理</span>
+    </a>
+    <a class="nav-link {{if eq .Menu "categories"}}active{{end}}" href="{{$.AdminPath}}/categories">
+      <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h7l2 2h9v10H3z"/></svg>
+      <span>栏目管理</span>
+    </a>
+    <a class="nav-link {{if eq .Menu "tags"}}active{{end}}" href="{{$.AdminPath}}/tags">
+      <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12l9-9 9 9-9 9z"/><circle cx="8" cy="8" r="1.4"/></svg>
+      <span>标签管理</span>
+    </a>
+    <a class="nav-link {{if eq .Menu "media"}}active{{end}}" href="{{$.AdminPath}}/media">
+      <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M4 18l5-5 3 3 3-4 5 6"/></svg>
+      <span>媒体库</span>
+    </a>
+
+    <div class="nav-group-title">运营</div>
+    <a class="nav-link {{if eq .Menu "messages"}}active{{end}}" href="{{$.AdminPath}}/messages">
+      <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H8l-4 4z"/></svg>
+      <span>留言管理</span>
+      {{if gt .Unread 0}}<b class="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[11px] font-semibold leading-none">{{.Unread}}</b>{{end}}
+    </a>
+    <a class="nav-link {{if eq .Menu "menus"}}active{{end}}" href="{{$.AdminPath}}/menus">
+      <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+      <span>导航菜单</span>
+    </a>
+    <a class="nav-link {{if eq .Menu "banners"}}active{{end}}" href="{{$.AdminPath}}/banners">
+      <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/></svg>
+      <span>轮播图</span>
+    </a>
+    <a class="nav-link {{if eq .Menu "links"}}active{{end}}" href="{{$.AdminPath}}/links">
+      <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 15l6-6"/><path d="M11 6l1-1a4 4 0 116 6l-1 1"/><path d="M13 18l-1 1a4 4 0 11-6-6l1-1"/></svg>
+      <span>友情链接</span>
+    </a>
+
+    <div class="nav-group-title">系统</div>
+    {{if .User.IsAdmin}}
+    <a class="nav-link {{if eq .Menu "users"}}active{{end}}" href="{{$.AdminPath}}/users">
+      <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 20a6 6 0 0112 0"/><path d="M16 6.5a3 3 0 010 5.8M18 20a5.5 5.5 0 00-3-4.9"/></svg>
+      <span>用户管理</span>
+    </a>
+    <a class="nav-link {{if eq .Menu "settings"}}active{{end}}" href="{{$.AdminPath}}/settings">
+      <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>
+      <span>系统设置</span>
+    </a>
+    <a class="nav-link {{if eq .Menu "theme"}}active{{end}}" href="{{$.AdminPath}}/theme">
+      <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3a9 9 0 100 18c1.4 0 2-1 2-2s-.6-2-2-2h-1a2 2 0 010-4h5a3 3 0 003-3c0-3.9-3.1-7-7-7z"/><circle cx="7.5" cy="10" r="1.2"/><circle cx="12" cy="7" r="1.2"/></svg>
+      <span>主题管理</span>
+    </a>
+    <a class="nav-link {{if eq .Menu "audits"}}active{{end}}" href="{{$.AdminPath}}/audits">
+      <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 4h9a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2h2z"/><path d="M9 3h5v3H9z"/><path d="M9 12h7M9 16h5"/></svg>
+      <span>操作日志</span>
+    </a>
+    {{end}}
+    <a class="nav-link {{if eq .Menu "profile"}}active{{end}}" href="{{$.AdminPath}}/profile">
+      <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0114 0"/></svg>
+      <span>个人资料</span>
+    </a>
+  </nav>
+
+  <div class="flex items-center justify-between gap-2 px-4 py-3 border-t border-line text-xs text-ink-3 shrink-0">
+    <a class="hover:text-brand-600 dark:hover:text-brand-400" href="/" target="_blank" rel="noopener">查看站点 ↗</a>
+    <span class="font-mono">v{{.Version}}</span>
+  </div>
+</aside>
+{{end}}
+
+{{define "admin_topbar"}}
+<header class="sticky top-0 z-30 flex items-center gap-3 h-[60px] px-4 sm:px-6
+               bg-surface/90 backdrop-blur border-b border-line">
+  <button class="lg:hidden -ml-1 w-9 h-9 grid place-items-center rounded text-ink-2 hover:bg-surface-3"
+          @click="$store.ui.nav=true" aria-label="展开菜单">
+    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </button>
+
+  <h1 class="text-[15px] font-semibold truncate">{{.Title}}</h1>
+
+  <div class="ml-auto flex items-center gap-1.5">
+    <button class="w-9 h-9 grid place-items-center rounded text-ink-2 hover:bg-surface-3 hover:text-ink"
+            @click="$store.ui.toggleTheme()" title="切换主题" aria-label="切换主题">
+      <svg class="w-[17px] h-[17px] dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      <svg class="w-[17px] h-[17px] hidden dark:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>
+    </button>
+
+    <div class="relative" x-data="{open:false}" @click.outside="open=false">
+      <button class="flex items-center gap-2 h-9 pl-1 pr-2 rounded hover:bg-surface-3"
+              @click="open = !open">
+        <span class="w-7 h-7 rounded-full grid place-items-center shrink-0
+                     bg-brand-100 text-brand-700 text-xs font-semibold
+                     dark:bg-brand-500/20 dark:text-brand-300">{{firstChar .User.DisplayName}}</span>
+        <span class="hidden sm:block text-[13px] font-medium max-w-[120px] truncate">{{.User.DisplayName}}</span>
+        <svg class="w-3 h-3 text-ink-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+
+      <div x-show="open" x-transition.origin.top.right
+           class="absolute right-0 mt-1.5 w-52 py-1 rounded-lg bg-surface border border-line shadow-pop">
+        <div class="px-3 py-2 border-b border-line mb-1">
+          <strong class="block text-[13px] font-semibold">{{.User.Username}}</strong>
+          <em class="block text-xs not-italic text-ink-3">{{if .User.IsAdmin}}超级管理员{{else if eq .User.Role "editor"}}内容编辑{{else}}只读用户{{end}}</em>
+        </div>
+        <a class="block px-3 py-1.5 text-[13px] text-ink-2 hover:bg-surface-3 hover:text-ink" href="{{$.AdminPath}}/profile">个人资料</a>
+        <a class="block px-3 py-1.5 text-[13px] text-ink-2 hover:bg-surface-3 hover:text-ink" href="/" target="_blank" rel="noopener">访问前台</a>
+        <form method="post" action="{{$.AdminPath}}/logout">
+          <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+          <button class="block w-full text-left px-3 py-1.5 text-[13px] text-red-600 hover:bg-surface-3 dark:text-red-400" type="submit">退出登录</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</header>
+{{if .Flash}}<div class="flash flash-{{.Flash.Type}}">{{.Flash.Msg}}</div>{{end}}
+{{end}}

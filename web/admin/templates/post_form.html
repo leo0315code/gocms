@@ -1,0 +1,243 @@
+{{template "admin_head" .}}
+
+{{$post := .Item}}
+<form method="post" action="{{$.AdminPath}}/posts/save">
+<input type="hidden" name="csrf_token" value="{{.CSRF}}">
+<input type="hidden" name="id" value="{{$post.ID}}">
+<input type="hidden" name="content" id="postContent" value="{{$post.Content}}">
+<input type="hidden" name="content_format" id="contentFormat" value="{{default "html" $post.ContentFormat}}">
+
+<div class="grid gap-4 items-start grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px]">
+  {{/* 左侧：标题 + 正文 + 摘要 + 自定义字段 */}}
+  <div class="space-y-4 min-w-0">
+    <div class="card">
+      <div class="px-4 pt-4 pb-3 border-b border-line">
+        <input type="text" name="title" id="postTitle" value="{{$post.Title}}" required maxlength="200"
+               placeholder="请输入文章标题…"
+               class="w-full px-0 py-1 bg-transparent border-0 text-lg font-semibold text-ink
+                      placeholder:text-ink-3 focus:outline-none focus:ring-0">
+        <div class="flex items-center gap-2 mt-2.5">
+          <span class="text-xs text-ink-3 shrink-0">固定链接 /a/</span>
+          <input class="input !h-8 !text-xs max-w-[340px]" type="text" name="slug" id="postSlug"
+                 value="{{$post.Slug}}" placeholder="留空自动生成">
+        </div>
+      </div>
+
+      <div>
+        {{/* 工具栏 */}}
+        <div class="flex flex-wrap items-center gap-1 px-3 py-2 border-b border-line bg-surface-3/50">
+          <button type="button" class="etool" data-cmd="bold" title="加粗"><b>B</b></button>
+          <button type="button" class="etool" data-cmd="italic" title="斜体"><i>I</i></button>
+          <button type="button" class="etool" data-cmd="underline" title="下划线"><u>U</u></button>
+          <button type="button" class="etool" data-cmd="strikeThrough" title="删除线"><s>S</s></button>
+          <span class="w-px h-5 bg-line-2 mx-1"></span>
+          <button type="button" class="etool" data-cmd="formatBlock" data-val="h2" title="标题2">H2</button>
+          <button type="button" class="etool" data-cmd="formatBlock" data-val="h3" title="标题3">H3</button>
+          <button type="button" class="etool" data-cmd="formatBlock" data-val="p" title="正文">¶</button>
+          <span class="w-px h-5 bg-line-2 mx-1"></span>
+          <button type="button" class="etool" data-cmd="insertUnorderedList" title="无序列表">•≡</button>
+          <button type="button" class="etool" data-cmd="insertOrderedList" title="有序列表">1.</button>
+          <button type="button" class="etool" data-cmd="formatBlock" data-val="blockquote" title="引用">❝</button>
+          <span class="w-px h-5 bg-line-2 mx-1"></span>
+          <button type="button" class="etool" data-cmd="createLink" title="插入链接">🔗</button>
+          <button type="button" class="etool" data-cmd="insertImage" title="插入图片">🖼</button>
+          <button type="button" class="etool" data-cmd="insertHorizontalRule" title="分隔线">—</button>
+          <span class="w-px h-5 bg-line-2 mx-1"></span>
+          <button type="button" class="etool" data-cmd="removeFormat" title="清除格式">⌫</button>
+
+          <div class="ml-auto flex items-center gap-1 p-0.5 rounded bg-surface-3">
+            <button type="button" class="editor-tab px-2.5 h-7 rounded text-xs font-medium bg-surface text-brand-700 shadow-card dark:text-brand-300" data-mode="html">富文本</button>
+            <button type="button" class="editor-tab px-2.5 h-7 rounded text-xs font-medium text-ink-3" data-mode="markdown">Markdown</button>
+          </div>
+        </div>
+
+        <div id="richWrap">
+          <div id="editorArea" contenteditable="true"
+               data-placeholder="开始撰写正文…支持直接粘贴图片"
+               class="min-h-[380px] px-4 py-3 text-[14px] leading-relaxed text-ink outline-none
+                      [&[contenteditable]:empty]:before:content-[attr(data-placeholder)] [&[contenteditable]:empty]:before:text-ink-3">{{safeHTML $post.Content}}</div>
+        </div>
+
+        <div id="mdWrap" class="hidden">
+          <textarea id="mdArea" placeholder="使用 Markdown 语法撰写…"
+                    class="w-full min-h-[380px] px-4 py-3 bg-transparent border-0 font-mono text-[13px] leading-relaxed text-ink resize-y focus:outline-none">{{$post.Content}}</textarea>
+          <div class="px-4 py-2.5 border-t border-line text-xs text-ink-3 bg-surface-3/50">
+            支持 # 标题、**加粗**、- 列表、&gt; 引用、`代码`、表格与链接
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>摘要与 SEO</h2></div>
+      <div class="p-4 space-y-3.5">
+        <div>
+          <label class="field-label" for="summary">文章摘要</label>
+          <textarea class="input" name="summary" id="summary" rows="2" maxlength="500"
+                    placeholder="用于列表页与搜索引擎展示，留空则自动截取正文">{{$post.Summary}}</textarea>
+          <span class="field-hint">建议 60–160 字。</span>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-3.5">
+          <div>
+            <label class="field-label" for="seo_title">SEO 标题</label>
+            <input class="input" type="text" name="seo_title" id="seo_title" value="{{$post.SEOTitle}}"
+                   maxlength="200" placeholder="留空使用文章标题">
+          </div>
+          <div>
+            <label class="field-label" for="seo_keywords">SEO 关键词</label>
+            <input class="input" type="text" name="seo_keywords" id="seo_keywords" value="{{$post.SEOKeywords}}"
+                   maxlength="300" placeholder="用英文逗号分隔">
+          </div>
+        </div>
+        <div>
+          <label class="field-label" for="seo_description">SEO 描述</label>
+          <textarea class="input" name="seo_description" id="seo_description" rows="2" maxlength="500"
+                    placeholder="留空使用摘要">{{$post.SEODescription}}</textarea>
+        </div>
+      </div>
+    </div>
+
+    {{if .Fields}}
+    <div class="card">
+      <div class="card-head">
+        <h2>自定义字段</h2>
+        <span class="text-xs text-ink-3">来自所属栏目</span>
+      </div>
+      <div class="p-4 grid sm:grid-cols-2 gap-3.5">
+        {{range .Fields}}
+        {{$val := index $.Values .ID}}
+        <div class="{{if eq .Type "textarea"}}sm:col-span-2{{end}}">
+          <label class="field-label" for="field_{{.ID}}">{{.Label}}{{if .Required}} <span class="text-red-500">*</span>{{end}}</label>
+          {{if eq .Type "textarea"}}
+            <textarea class="input" name="field_{{.ID}}" id="field_{{.ID}}" rows="3" placeholder="{{.Placeholder}}">{{$val}}</textarea>
+          {{else if eq .Type "select"}}
+            <select class="input" name="field_{{.ID}}" id="field_{{.ID}}">
+              <option value="">请选择</option>
+              {{$cur := $val}}
+              {{range .OptionsList}}<option value="{{.}}" {{if eq . $cur}}selected{{end}}>{{.}}</option>{{end}}
+            </select>
+          {{else if eq .Type "number"}}
+            <input class="input" type="number" name="field_{{.ID}}" id="field_{{.ID}}" value="{{$val}}" placeholder="{{.Placeholder}}">
+          {{else if eq .Type "date"}}
+            <input class="input" type="date" name="field_{{.ID}}" id="field_{{.ID}}" value="{{$val}}">
+          {{else if eq .Type "image"}}
+            <div class="flex items-center gap-2">
+              <div class="w-14 h-10 shrink-0 rounded border border-line bg-surface-3 grid place-items-center overflow-hidden text-[11px] text-ink-3"
+                   id="pv_field_{{.ID}}">{{if $val}}<img src="{{$val}}" alt="" class="w-full h-full object-cover">{{else}}无图{{end}}</div>
+              <input class="input flex-1 min-w-0" type="text" name="field_{{.ID}}" id="field_{{.ID}}" value="{{$val}}" placeholder="图片地址">
+              <button type="button" class="btn btn-ghost btn-sm shrink-0" onclick="pickImage('field_{{.ID}}','pv_field_{{.ID}}')">选择</button>
+            </div>
+          {{else}}
+            <input class="input" type="text" name="field_{{.ID}}" id="field_{{.ID}}" value="{{$val}}" placeholder="{{.Placeholder}}">
+          {{end}}
+        </div>
+        {{end}}
+      </div>
+    </div>
+    {{end}}
+  </div>
+
+  {{/* 右侧：发布设置 */}}
+  <aside class="space-y-4">
+    <div class="card">
+      <div class="card-head"><h2>发布</h2></div>
+      <div class="p-4 space-y-3.5">
+        <div>
+          <label class="field-label" for="status">状态</label>
+          <select class="input" name="status" id="status">
+            <option value="published" {{if eq $post.Status "published"}}selected{{end}}>已发布</option>
+            <option value="draft" {{if eq $post.Status "draft"}}selected{{end}}>草稿</option>
+            <option value="trash" {{if eq $post.Status "trash"}}selected{{end}}>回收站</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label" for="published_at">发布时间</label>
+          <input class="input" type="datetime-local" name="published_at" id="published_at"
+                 value="{{if $post.PublishedAt}}{{date $post.PublishedAt}}T00:00{{end}}">
+          <span class="field-hint">留空则保存时使用当前时间；未来时间将不会在前台显示。</span>
+        </div>
+        <div class="space-y-2 pt-1">
+          <label class="flex items-center gap-2 text-[13px] cursor-pointer">
+            <input type="checkbox" class="checkbox" name="is_top" value="1" {{if bool $post.IsTop}}checked{{end}}> 置顶
+          </label>
+          <label class="flex items-center gap-2 text-[13px] cursor-pointer">
+            <input type="checkbox" class="checkbox" name="is_recommend" value="1" {{if bool $post.IsRecommend}}checked{{end}}> 推荐到首页
+          </label>
+        </div>
+        <div class="space-y-2 pt-2 border-t border-line">
+          <button class="btn btn-primary btn-block" type="submit">保存文章</button>
+          <button class="btn btn-ghost btn-block" type="submit" name="continue" value="1">保存并继续编辑</button>
+          <a class="btn btn-ghost btn-block" href="{{$.AdminPath}}/posts">返回列表</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>分类</h2></div>
+      <div class="p-4">
+        <select class="input" name="category_id" id="categorySelect">
+          <option value="0">未分类</option>
+          {{range .CatTree}}
+          <option value="{{.ID}}" {{if eq .ID $post.CategoryID}}selected{{end}}>{{.Name}}</option>
+          {{range .Children}}<option value="{{.ID}}" {{if eq .ID $post.CategoryID}}selected{{end}}>　{{.Name}}</option>{{end}}
+          {{end}}
+        </select>
+        <span class="field-hint" id="fieldHint">文章所属栏目，决定列表页归属。</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>标签</h2></div>
+      <div class="p-4">
+        <input class="input" type="text" name="tags" id="tags"
+               value="{{if $post.Tags}}{{range $i, $t := $post.Tags}}{{if $i}},{{end}}{{$t.Name}}{{end}}{{end}}"
+               placeholder="多个标签用逗号分隔">
+        <span class="field-hint">输入新标签会自动创建。</span>
+        {{if .Tags}}
+        <div class="flex flex-wrap gap-1.5 mt-2.5">
+          {{range .Tags}}<button type="button" class="badge badge-gray hover:badge-blue cursor-pointer" onclick="addTag('{{.Name}}')">{{.Name}}</button>{{end}}
+        </div>
+        {{end}}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>封面图</h2></div>
+      <div class="p-4">
+        <div class="w-full h-[120px] rounded border border-line bg-surface-3 grid place-items-center overflow-hidden text-xs text-ink-3 mb-2.5"
+             id="pv_cover">{{if $post.Cover}}<img src="{{$post.Cover}}" alt="" class="w-full h-full object-cover">{{else}}点击选择封面{{end}}</div>
+        <div class="flex items-center gap-2">
+          <input class="input flex-1 min-w-0" type="text" name="cover" id="cover" value="{{$post.Cover}}" placeholder="图片地址">
+          <button type="button" class="btn btn-ghost btn-sm shrink-0" onclick="pickImage('cover','pv_cover')">上传</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>高级</h2></div>
+      <div class="p-4 space-y-3.5">
+        <div>
+          <label class="field-label" for="template">自定义模板</label>
+          <input class="input" type="text" name="template" id="template" value="{{$post.Template}}" placeholder="如 post-product.html">
+          <span class="field-hint">留空使用主题默认模板。</span>
+        </div>
+        <div>
+          <label class="field-label" for="sort">排序值</label>
+          <input class="input" type="number" name="sort" id="sort" value="{{$post.Sort}}">
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+</form>
+
+<script>
+function addTag(name) {
+  var el = document.getElementById('tags');
+  var parts = el.value.split(/[,，]/).map(function (s) { return s.trim(); }).filter(Boolean);
+  if (parts.indexOf(name) === -1) { parts.push(name); }
+  el.value = parts.join(',');
+}
+</script>
+
+{{template "admin_foot" .}}

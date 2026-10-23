@@ -1,0 +1,92 @@
+{{template "admin_head" .}}
+
+<div class="card">
+  <div class="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-line">
+    <span class="text-[13px] text-ink-3">共 {{.Total}} 个栏目，支持多级嵌套</span>
+    <a class="btn btn-primary ml-auto" href="{{$.AdminPath}}/categories/new">+ 新建栏目</a>
+  </div>
+
+  {{if .Items}}
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr>
+          <th>栏目名称</th>
+          <th class="w-[170px]">URL</th>
+          <th class="w-[90px]">类型</th>
+          <th class="w-[80px]">导航</th>
+          <th class="w-[70px]">排序</th>
+          <th class="w-[130px]"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .Items}}
+        <tr>
+          <td>
+            <a class="title-cell" href="{{$.AdminPath}}/categories/{{.ID}}/edit">
+              {{if .Depth}}{{range seq .Depth}}<span class="text-ink-3 select-none">│&nbsp;</span>{{end}}{{end}}{{.Name}}
+            </a>
+            {{if .Description}}<div class="cell-sub">{{excerpt .Description 40}}</div>{{end}}
+          </td>
+          <td class="cell-sub">/c/{{.Slug}}</td>
+          <td><span class="badge badge-gray">{{if eq .Type "product"}}产品{{else}}文章{{end}}</span></td>
+          <td>{{if bool .IsNav}}<span class="badge badge-blue">显示</span>{{else}}<span class="badge badge-gray">隐藏</span>{{end}}</td>
+          <td class="tabular-nums">{{.Sort}}</td>
+          <td class="col-actions">
+            <div class="flex items-center justify-end gap-3">
+              <a class="btn-link" href="/c/{{.Slug}}" target="_blank" rel="noopener">查看</a>
+              <a class="btn-link" href="{{$.AdminPath}}/categories/{{.ID}}/edit">编辑</a>
+              <form method="post" action="{{$.AdminPath}}/categories/{{.ID}}/delete" class="inline"
+                    data-confirm="确认删除栏目「{{.Name}}」？其下文章将移到未分类。">
+                <input type="hidden" name="csrf_token" value="{{$.CSRF}}">
+                <button class="btn-link text-red-600 hover:text-red-700 dark:text-red-400" type="submit">删除</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+  {{else}}
+  <div class="px-4 py-16 text-center">
+    <h3 class="text-sm font-semibold mb-1">还没有栏目</h3>
+    <p class="text-[13px] text-ink-3 mb-4">栏目是内容的组织方式，建议先创建「新闻动态」「产品中心」等。</p>
+    <a class="btn btn-primary btn-sm" href="{{$.AdminPath}}/categories/new">+ 新建栏目</a>
+  </div>
+  {{end}}
+</div>
+
+{{if .Fields}}
+<div class="card mt-4">
+  <div class="card-head">
+    <h2>已定义的自定义字段</h2>
+    <span class="text-xs text-ink-3">在栏目编辑页可添加/修改</span>
+  </div>
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th>所属栏目</th><th>字段名</th><th>标签</th><th>类型</th><th>必填</th></tr></thead>
+      <tbody>
+        {{$fields := .Fields}}
+        {{range .Items}}
+          {{$catID := .ID}}
+          {{$catName := .Name}}
+          {{range $fields}}
+            {{if eq .CategoryID $catID}}
+            <tr>
+              <td>{{$catName}}</td>
+              <td><code class="px-1.5 py-0.5 rounded bg-surface-3 font-mono text-xs">{{.Name}}</code></td>
+              <td>{{.Label}}</td>
+              <td><span class="badge badge-gray">{{.Type}}</span></td>
+              <td>{{if .Required}}是{{else}}否{{end}}</td>
+            </tr>
+            {{end}}
+          {{end}}
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+</div>
+{{end}}
+
+{{template "admin_foot" .}}

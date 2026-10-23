@@ -1,0 +1,66 @@
+{{template "admin_head" .}}
+
+{{$u := .Item}}
+<div class="max-w-[620px] space-y-4">
+  <form method="post" action="{{$.AdminPath}}/profile" class="card">
+    <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+    <div class="card-head"><h2>个人资料</h2></div>
+    <div class="p-4 space-y-3.5">
+      <div class="grid sm:grid-cols-2 gap-3.5">
+        <div>
+          <label class="field-label">用户名</label>
+          <input class="input" type="text" value="{{$u.Username}}" readonly>
+        </div>
+        <div>
+          <label class="field-label">角色</label>
+          <input class="input" type="text" value="{{if $u.IsAdmin}}超级管理员{{else if eq $u.Role "editor"}}内容编辑{{else}}只读用户{{end}}" readonly>
+        </div>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-3.5">
+        <div>
+          <label class="field-label" for="nickname">昵称</label>
+          <input class="input" type="text" name="nickname" id="nickname" maxlength="80" value="{{$u.Nickname}}" placeholder="显示在后台顶部">
+        </div>
+        <div>
+          <label class="field-label" for="email">邮箱</label>
+          <input class="input" type="email" name="email" id="email" maxlength="120" value="{{$u.Email}}">
+        </div>
+      </div>
+    </div>
+
+    <div class="card-head border-t border-line">
+      <h2>修改密码</h2>
+      <span class="text-xs text-ink-3">不修改请留空</span>
+    </div>
+    <div class="p-4 space-y-3.5">
+      <div>
+        <label class="field-label" for="old_password">当前密码</label>
+        <input class="input" type="password" name="old_password" id="old_password" autocomplete="current-password">
+      </div>
+      <div class="grid sm:grid-cols-2 gap-3.5">
+        <div>
+          <label class="field-label" for="new_password">新密码</label>
+          <input class="input" type="password" name="new_password" id="new_password"
+                 autocomplete="new-password" placeholder="至少 8 位，含字母与数字">
+        </div>
+        <div>
+          <label class="field-label" for="confirm_password">确认新密码</label>
+          <input class="input" type="password" name="confirm_password" id="confirm_password" autocomplete="new-password">
+        </div>
+      </div>
+      <div class="pt-2 border-t border-line">
+        <button class="btn btn-primary" type="submit">保存修改</button>
+      </div>
+    </div>
+  </form>
+
+  <div class="card">
+    <div class="card-head"><h2>账号信息</h2></div>
+    <div class="p-4 space-y-2 text-[13px] text-ink-2">
+      <div>创建时间：{{datetime $u.CreatedAt}}</div>
+      {{if $u.LastLoginAt}}<div>最后登录：{{datetime $u.LastLoginAt}}（IP {{$u.LastLoginIP}}）</div>{{end}}
+    </div>
+  </div>
+</div>
+
+{{template "admin_foot" .}}

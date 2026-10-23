@@ -1,0 +1,50 @@
+{{define "footer"}}
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div class="footer-col footer-about">
+      <div class="footer-brand">{{.SiteName}}</div>
+      <p>{{default .Site.site_slogan .Site.footer_about}}</p>
+      <ul class="footer-contact">
+        {{if .Site.contact_phone}}<li><span>电话</span>{{.Site.contact_phone}}</li>{{end}}
+        {{if .Site.contact_email}}<li><span>邮箱</span>{{.Site.contact_email}}</li>{{end}}
+        {{if .Site.contact_address}}<li><span>地址</span>{{.Site.contact_address}}</li>{{end}}
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>快速导航</h4>
+      <ul class="footer-links">
+        {{range .Nav}}{{if .IsShow}}<li><a href="{{.URL}}">{{.Title}}</a></li>{{end}}{{end}}
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>关于</h4>
+      <ul class="footer-links">
+        {{range .SidePages}}<li><a href="/p/{{.Slug}}">{{.Title}}</a></li>{{end}}
+        <li><a href="/rss.xml">RSS 订阅</a></li>
+        <li><a href="/sitemap.xml">站点地图</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>关注我们</h4>
+      <p class="footer-hours">{{.Site.contact_hours}}</p>
+      <div class="footer-social">
+        {{if .Site.social_weibo}}<a href="{{.Site.social_weibo}}" rel="noopener" target="_blank">微博</a>{{end}}
+        {{if .Site.social_wechat}}<span>微信：{{.Site.social_wechat}}</span>{{end}}
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <div class="container footer-bottom-inner">
+      <span>{{default "" .Site.site_copyright}}</span>
+      <span class="footer-meta">
+        {{if .Site.site_icp}}<a href="https://beian.miit.gov.cn" rel="noopener nofollow" target="_blank">{{.Site.site_icp}}</a>{{end}}
+        <span class="dot">·</span>Powered by GoCMS
+      </span>
+    </div>
+  </div>
+</footer>
+{{end}}

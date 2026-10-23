@@ -1,0 +1,79 @@
+{{template "admin_head" .}}
+
+<div class="card mb-4">
+  <div class="card-head">
+    <h2>可用主题</h2>
+    <span class="text-xs text-ink-3">将主题目录放入 <code class="px-1 rounded bg-surface-3 font-mono">themes/</code> 即可被识别</span>
+  </div>
+  <div class="p-4">
+    {{if .Themes}}
+    <div class="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(240px,1fr))]">
+      {{range .Themes}}
+      <div class="rounded-lg border {{if .Active}}border-brand-500 ring-1 ring-brand-500/30{{else}}border-line{{end}} bg-surface overflow-hidden">
+        <div class="aspect-[16/10] bg-surface-3 grid place-items-center overflow-hidden bg-cover bg-center"
+             {{if .Screenshot}}style="background-image:url('{{.Screenshot}}')"{{end}}>
+          {{if not .Screenshot}}<span class="text-sm text-ink-3">{{.Name}}</span>{{end}}
+        </div>
+        <div class="p-3.5">
+          <h3 class="flex items-center gap-2 text-sm font-semibold mb-1">
+            {{.Name}}
+            {{if .Active}}<span class="badge badge-green">当前使用</span>{{end}}
+          </h3>
+          <p class="text-xs text-ink-3 leading-relaxed mb-2">{{default "暂无描述" .Description}}</p>
+          <div class="text-[11px] text-ink-3 mb-3">
+            目录：{{.Dir}}{{if .Version}} · v{{.Version}}{{end}}{{if .Author}} · {{.Author}}{{end}}
+          </div>
+          <div class="pt-3 border-t border-line">
+            {{if .Active}}
+            <button class="btn btn-ghost btn-sm" disabled>使用中</button>
+            {{else}}
+            <form method="post" action="{{$.AdminPath}}/theme">
+              <input type="hidden" name="csrf_token" value="{{$.CSRF}}">
+              <input type="hidden" name="theme" value="{{.Dir}}">
+              <button class="btn btn-primary btn-sm" type="submit">启用此主题</button>
+            </form>
+            {{end}}
+          </div>
+        </div>
+      </div>
+      {{end}}
+    </div>
+    {{else}}
+    <div class="px-4 py-12 text-center">
+      <h3 class="text-sm font-semibold mb-1">未找到主题</h3>
+      <p class="text-[13px] text-ink-3">请在 <code class="px-1 rounded bg-surface-3 font-mono">themes/</code> 目录下放置包含 templates 子目录的主题。</p>
+    </div>
+    {{end}}
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-head"><h2>主题开发说明</h2></div>
+  <div class="p-4">
+    <pre class="p-4 rounded-lg bg-surface-3 text-xs leading-relaxed overflow-x-auto font-mono text-ink-2">themes/&lt;name&gt;/
+├── theme.json          # 元信息：name / version / author / description / screenshot
+├── templates/
+│   ├── home.html       # 首页
+│   ├── category.html   # 栏目列表页
+│   ├── post.html       # 文章详情页
+│   ├── page.html       # 单页
+│   ├── tag.html        # 标签页
+│   ├── search.html     # 搜索页
+│   ├── error.html      # 错误页
+│   └── partials/       # 公共片段：head / foot / header / footer / sidebar …
+└── assets/
+    ├── css/style.css   # 通过 /assets/css/style.css 访问
+    └── js/main.js</pre>
+    <p class="text-[13px] text-ink-2 leading-relaxed mt-4 mb-0">
+      模板可用变量：<code class="px-1 rounded bg-surface-3 font-mono text-xs">{{"{{.Site}}"}}</code>（站点设置）、
+      <code class="px-1 rounded bg-surface-3 font-mono text-xs">{{"{{.Nav}}"}}</code>（主导航）、
+      <code class="px-1 rounded bg-surface-3 font-mono text-xs">{{"{{.SEO}}"}}</code>、
+      <code class="px-1 rounded bg-surface-3 font-mono text-xs">{{"{{.Posts}}"}}</code>、
+      <code class="px-1 rounded bg-surface-3 font-mono text-xs">{{"{{.Post}}"}}</code>、
+      <code class="px-1 rounded bg-surface-3 font-mono text-xs">{{"{{.Pagination}}"}}</code> 等。<br>
+      可用函数：<code class="px-1 rounded bg-surface-3 font-mono text-xs">date</code>、<code class="px-1 rounded bg-surface-3 font-mono text-xs">datetime</code>、<code class="px-1 rounded bg-surface-3 font-mono text-xs">excerpt</code>、<code class="px-1 rounded bg-surface-3 font-mono text-xs">render</code>、<code class="px-1 rounded bg-surface-3 font-mono text-xs">safeHTML</code>、<code class="px-1 rounded bg-surface-3 font-mono text-xs">default</code>、<code class="px-1 rounded bg-surface-3 font-mono text-xs">firstChar</code>、<code class="px-1 rounded bg-surface-3 font-mono text-xs">size</code>。
+    </p>
+  </div>
+</div>
+
+{{template "admin_foot" .}}

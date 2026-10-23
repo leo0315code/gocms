@@ -1,0 +1,50 @@
+{{define "sidebar"}}
+<aside class="sidebar">
+  {{if .HotPosts}}
+  <section class="widget">
+    <h3 class="widget-title">热门阅读</h3>
+    <ol class="widget-list ranked">
+      {{range $i, $p := .HotPosts}}
+      <li><span class="rank">{{add $i 1}}</span><a href="/a/{{$p.Slug}}">{{$p.Title}}</a></li>
+      {{end}}
+    </ol>
+  </section>
+  {{end}}
+
+  {{if .Categories}}
+  <section class="widget">
+    <h3 class="widget-title">相关栏目</h3>
+    <ul class="widget-list">
+      {{range .Categories}}<li><a href="/c/{{.Slug}}">{{.Name}}</a></li>{{end}}
+    </ul>
+  </section>
+  {{end}}
+
+  {{if .Tags}}
+  <section class="widget">
+    <h3 class="widget-title">标签云</h3>
+    <div class="tag-cloud">
+      {{range .Tags}}<a href="/t/{{.Slug}}" class="tag">{{.Name}}<span>{{.Count}}</span></a>{{end}}
+    </div>
+  </section>
+  {{end}}
+
+  {{if .Links}}
+  <section class="widget">
+    <h3 class="widget-title">友情链接</h3>
+    <div class="friend-links">
+      {{range .Links}}<a href="{{.URL}}" target="_blank" rel="noopener nofollow">{{.Name}}</a>{{end}}
+    </div>
+  </section>
+  {{end}}
+
+  {{if .SidePages}}
+  <section class="widget">
+    <h3 class="widget-title">更多信息</h3>
+    <ul class="widget-list">
+      {{range .SidePages}}<li><a href="/p/{{.Slug}}">{{.Title}}</a></li>{{end}}
+    </ul>
+  </section>
+  {{end}}
+</aside>
+{{end}}

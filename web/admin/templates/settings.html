@@ -1,0 +1,133 @@
+{{template "admin_head" .}}
+
+{{$active := .Options.active}}
+{{$settings := .Settings}}
+
+<div class="grid gap-4 items-start grid-cols-1 lg:grid-cols-[200px_minmax(0,1fr)]">
+  {{/* 分组导航 */}}
+  <nav class="card p-1.5 lg:sticky lg:top-[76px] flex lg:flex-col gap-0.5 overflow-x-auto scroll-thin">
+    {{range .Groups}}
+    {{$g := .}}
+    <a class="px-3 h-9 inline-flex items-center shrink-0 rounded text-[13px] font-medium transition-colors
+              {{if eq $g $active}}bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300{{else}}text-ink-2 hover:bg-surface-3 hover:text-ink{{end}}"
+       href="{{$.AdminPath}}/settings?group={{$g}}">
+      {{if eq $g "general"}}基本信息
+      {{else if eq $g "seo"}}SEO 设置
+      {{else if eq $g "contact"}}联系方式
+      {{else if eq $g "display"}}显示与内容
+      {{else if eq $g "social"}}社交账号
+      {{else if eq $g "mail"}}邮件通知
+      {{else if eq $g "sms"}}短信通知
+      {{else if eq $g "security"}}安全与入口
+      {{else}}{{$g}}{{end}}
+    </a>
+    {{end}}
+  </nav>
+
+  <form method="post" action="{{$.AdminPath}}/settings" class="space-y-4 min-w-0"
+        x-data="{ danger: false }">
+    <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+    <input type="hidden" name="group" value="{{$active}}">
+
+    <div class="card">
+      <div class="card-head">
+        <h2>
+          {{if eq $active "general"}}基本信息
+          {{else if eq $active "seo"}}SEO 设置
+          {{else if eq $active "contact"}}联系方式
+          {{else if eq $active "display"}}显示与内容
+          {{else if eq $active "social"}}社交账号
+          {{else if eq $active "mail"}}邮件通知
+          {{else if eq $active "sms"}}短信通知
+          {{else if eq $active "security"}}安全与入口
+          {{else}}{{$active}}{{end}}
+        </h2>
+      </div>
+
+      <div class="divide-y divide-line">
+        {{if not $settings}}
+        <div class="px-4 py-12 text-center text-[13px] text-ink-3">该分组暂无配置项。</div>
+        {{end}}
+
+        {{range $s := $settings}}
+        <div class="grid gap-1.5 sm:grid-cols-[180px_minmax(0,1fr)] sm:gap-4 px-4 py-3.5">
+          <label class="text-[13px] font-medium text-ink-2 sm:pt-2" for="setting_{{$s.Key}}">{{if $s.Label}}{{$s.Label}}{{else}}{{$s.Key}}{{end}}</label>
+          <div class="min-w-0">
+            {{if eq $s.Type "textarea"}}
+              <textarea class="input" name="setting_{{$s.Key}}" id="setting_{{$s.Key}}" rows="3"{{if eq $s.Key "admin_ip_allow"}} @input="danger = true"{{end}}>{{$s.Value}}</textarea>
+            {{else if eq $s.Type "bool"}}
+              <label class="inline-flex items-center gap-2 h-9 text-[13px] cursor-pointer">
+                <input type="checkbox" class="checkbox" name="setting_{{$s.Key}}" value="1" {{if eq $s.Value "1"}}checked{{end}}> 启用
+              </label>
+            {{else if eq $s.Type "number"}}
+              <input class="input max-w-[200px]" type="number" name="setting_{{$s.Key}}" id="setting_{{$s.Key}}" value="{{$s.Value}}">
+            {{else if eq $s.Type "image"}}
+              <div class="flex items-center gap-2">
+                <div class="w-14 h-10 shrink-0 rounded border border-line bg-surface-3 grid place-items-center overflow-hidden text-[11px] text-ink-3"
+                     id="pv_{{$s.Key}}">{{if $s.Value}}<img src="{{$s.Value}}" alt="" class="w-full h-full object-cover">{{else}}无图{{end}}</div>
+                <input class="input flex-1 min-w-0" type="text" name="setting_{{$s.Key}}" id="setting_{{$s.Key}}" value="{{$s.Value}}">
+                <button type="button" class="btn btn-ghost btn-sm shrink-0" onclick="pickImage('setting_{{$s.Key}}','pv_{{$s.Key}}')">选择</button>
+              </div>
+            {{else if eq $s.Key "admin_path"}}
+              {{/* 随机生成一个不可猜测的路径，比人手起名可靠 */}}
+              <div class="flex items-center gap-2"
+                   x-data="{ gen() {
+                     const cs = 'abcdefghijkmnpqrstuvwxyz23456789';
+                     let s = '';
+                     for (let i = 0; i < 5; i++) s += cs[Math.floor(Math.random() * cs.length)];
+                     document.getElementById('setting_admin_path').value = 'manage-' + s;
+                   } }">
+                <input class="input flex-1 min-w-0" type="text" name="setting_{{$s.Key}}" id="setting_{{$s.Key}}"
+                       value="{{$s.Value}}" @input="danger = true">
+                <button type="button" class="btn btn-ghost btn-sm shrink-0" @click="gen(); danger = true">随机生成</button>
+              </div>
+            {{else}}
+              <input class="input" type="text" name="setting_{{$s.Key}}" id="setting_{{$s.Key}}" value="{{$s.Value}}">
+            {{end}}
+
+            <div class="field-hint">
+              {{if eq $s.Key "site_url"}}填写完整地址（含 http/https），用于生成 sitemap 与 RSS 中的绝对链接，末尾不要带斜杠。
+              {{else if eq $s.Key "theme"}}在「主题管理」中切换更方便，此处改动不会立即生效，建议不改。
+              {{else if eq $s.Key "page_size"}}列表页每页显示条数。
+              {{else if eq $s.Key "seo_title"}}留空时使用站点名称。
+              {{else if eq $s.Key "admin_path"}}后台入口的 URL 前缀，<strong class="text-ink-2">改完立即生效，无需重启</strong>。只能包含字母、数字、下划线、连字符，2~32 位，且不能与 <code class="px-1 rounded bg-surface-3 font-mono">a</code>、<code class="px-1 rounded bg-surface-3 font-mono">c</code>、<code class="px-1 rounded bg-surface-3 font-mono">p</code>、<code class="px-1 rounded bg-surface-3 font-mono">t</code>、<code class="px-1 rounded bg-surface-3 font-mono">assets</code>、<code class="px-1 rounded bg-surface-3 font-mono">uploads</code> 等前台路径冲突。改完请<b class="text-ink-2">立即更新书签</b>。
+              {{else if eq $s.Key "admin_path_silent"}}开启后，历史后台地址{{if $.Options.legacy}}（{{range $i, $l := $.Options.legacy}}{{if $i}}、{{end}}<code class="px-1 rounded bg-surface-3 font-mono">/{{$l}}</code>{{end}}）{{end}}直接返回与普通页面完全一致的 404，<strong class="text-ink-2">不会暴露新入口</strong>。<br>关闭则旧地址会 302 跳转到当前地址——书签更方便，但跳转响应里带着新地址，扫描器一旦访问旧地址就能拿到新入口。要真正隐藏后台请开启本项。
+              {{else if eq $s.Key "admin_ip_allow"}}每行一条，留空表示不限制。支持单个 IP（<code class="px-1 rounded bg-surface-3 font-mono">192.168.1.10</code>）或网段（<code class="px-1 rounded bg-surface-3 font-mono">10.0.0.0/8</code>），<code class="px-1 rounded bg-surface-3 font-mono">#</code> 开头为注释。<br>保存时若新规则<strong class="text-ink-2">不包含你当前使用的 IP，会被直接拒绝</strong>，避免把自己锁在门外。<br>⚠️ 若前面挂了 Nginx 等反向代理，需在 <code class="px-1 rounded bg-surface-3 font-mono">.env</code> 设 <code class="px-1 rounded bg-surface-3 font-mono">TRUST_PROXY=1</code>，否则取到的是代理 IP。
+              {{else}}变量名：{{$s.Key}}{{end}}
+            </div>
+          </div>
+        </div>
+        {{end}}
+      </div>
+    </div>
+
+    {{/* 二次验证：改后台路径 / IP 白名单时才展开，普通设置不受影响 */}}
+    {{if eq $active "security"}}
+    <div x-show="danger" x-cloak x-transition.opacity
+         class="card border-amber-300 bg-amber-50/60 dark:border-amber-500/40 dark:bg-amber-500/10">
+      <div class="p-4">
+        <div class="flex items-start gap-2 mb-3">
+          <svg class="w-4 h-4 mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L2 18a1.5 1.5 0 001.3 2.2h17.4A1.5 1.5 0 0022 18L13.7 3.9a1.5 1.5 0 00-2.6 0z"/>
+          </svg>
+          <div class="text-[13px] leading-relaxed text-amber-900 dark:text-amber-200">
+            <strong>你正在修改高危安全项</strong>（后台入口路径或 IP 白名单）。
+            改错可能导致自己无法再进入后台，请<strong>重新输入当前密码</strong>确认。
+          </div>
+        </div>
+        <label class="field-label" for="confirm_password">当前密码</label>
+        <input class="input max-w-[280px]" type="password" name="confirm_password" id="confirm_password"
+               autocomplete="current-password" placeholder="输入当前账号密码"
+               :required="danger">
+      </div>
+    </div>
+    {{end}}
+
+    <div class="flex items-center gap-2">
+      <button class="btn btn-primary" type="submit">保存本组设置</button>
+      <a class="btn btn-ghost" href="{{$.AdminPath}}">返回概览</a>
+    </div>
+  </form>
+</div>
+
+{{template "admin_foot" .}}

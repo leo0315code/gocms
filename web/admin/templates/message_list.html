@@ -1,0 +1,148 @@
+{{template "admin_head" .}}
+
+<div class="card">
+  <div class="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-line">
+    <div class="flex items-center gap-1 p-0.5 rounded bg-surface-3">
+      <a class="px-2.5 h-7 inline-flex items-center rounded text-[13px] font-medium transition-colors
+                {{if eq .Status ""}}bg-surface text-ink shadow-card{{else}}text-ink-3 hover:text-ink{{end}}"
+         href="{{$.AdminPath}}/messages">全部</a>
+      <a class="px-2.5 h-7 inline-flex items-center rounded text-[13px] font-medium transition-colors
+                {{if eq .Status "unread"}}bg-surface text-ink shadow-card{{else}}text-ink-3 hover:text-ink{{end}}"
+         href="{{$.AdminPath}}/messages?status=unread">未读</a>
+      <a class="px-2.5 h-7 inline-flex items-center rounded text-[13px] font-medium transition-colors
+                {{if eq .Status "read"}}bg-surface text-ink shadow-card{{else}}text-ink-3 hover:text-ink{{end}}"
+         href="{{$.AdminPath}}/messages?status=read">已读</a>
+      <a class="px-2.5 h-7 inline-flex items-center rounded text-[13px] font-medium transition-colors
+                {{if eq .Status "replied"}}bg-surface text-ink shadow-card{{else}}text-ink-3 hover:text-ink{{end}}"
+         href="{{$.AdminPath}}/messages?status=replied">已回复</a>
+    </div>
+    <span class="ml-auto text-xs text-ink-3">共 {{.Total}} 条</span>
+  </div>
+
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr><th class="w-[70px]">状态</th><th class="w-[120px]">姓名</th><th>联系方式</th><th>内容摘要</th><th class="w-[120px]">时间</th><th class="w-[100px]"></th></tr>
+      </thead>
+      <tbody>
+        {{range .Items}}
+        <tr>
+          <td>
+            {{if eq .Status "unread"}}<span class="badge badge-red">未读</span>
+            {{else if eq .Status "replied"}}<span class="badge badge-green">已回复</span>
+            {{else}}<span class="badge badge-gray">已读</span>{{end}}
+          </td>
+          <td>
+            <a class="title-cell" href="{{$.AdminPath}}/messages?view={{.ID}}">{{.Name}}</a>
+            {{if .Company}}<div class="cell-sub">{{.Company}}</div>{{end}}
+          </td>
+          <td class="cell-sub leading-relaxed">
+            {{if .Phone}}{{.Phone}}<br>{{end}}
+            {{if .Email}}{{.Email}}{{end}}
+          </td>
+          <td class="cell-sub max-w-[360px]">{{excerpt .Content 60}}</td>
+          <td class="cell-sub whitespace-nowrap">{{datetime .CreatedAt}}</td>
+          <td class="col-actions">
+            <div class="flex items-center justify-end gap-3">
+              <a class="btn-link" href="{{$.AdminPath}}/messages?view={{.ID}}">查看</a>
+              <form method="post" action="{{$.AdminPath}}/messages/{{.ID}}/delete" class="inline"
+                    data-confirm="确认删除该留言？">
+                <input type="hidden" name="csrf_token" value="{{$.CSRF}}">
+                <button class="btn-link text-red-600 hover:text-red-700 dark:text-red-400" type="submit">删除</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+
+  {{if not .Items}}
+  <div class="px-4 py-16 text-center">
+    <h3 class="text-sm font-semibold mb-1">暂无留言</h3>
+    <p class="text-[13px] text-ink-3">访客通过站内表单提交的留言会出现在这里。</p>
+  </div>
+  {{end}}
+
+  {{if .Pagination}}
+  <div class="card-foot">
+    <span class="text-xs text-ink-3">共 {{.Total}} 条</span>
+    <div class="flex items-center gap-1">
+      {{if .Pagination.HasPrev}}<a class="pager-btn" href="{{.Pagination.PrevURL}}">上一页</a>{{else}}<span class="pager-btn disabled">上一页</span>{{end}}
+      {{range .Pagination.Pages}}
+        {{if .Current}}<span class="pager-btn current">{{.Num}}</span>{{else}}<a class="pager-btn" href="{{.URL}}">{{.Num}}</a>{{end}}
+      {{end}}
+      {{if .Pagination.HasNext}}<a class="pager-btn" href="{{.Pagination.NextURL}}">下一页</a>{{else}}<span class="pager-btn disabled">下一页</span>{{end}}
+    </div>
+  </div>
+  {{end}}
+</div>
+
+{{if .Item}}
+{{$m := .Item}}
+<div class="card mt-4" id="msgDetail">
+  <div class="card-head">
+    <h2>留言详情 #{{$m.ID}}</h2>
+    <a class="btn btn-ghost btn-sm" href="{{$.AdminPath}}/messages">关闭</a>
+  </div>
+  <div class="p-4 space-y-4">
+    <div class="flex flex-wrap items-center gap-2">
+      <span class="text-[15px] font-semibold">{{$m.Name}}</span>
+      {{if $m.Company}}<span class="badge badge-gray">{{$m.Company}}</span>{{end}}
+      {{if eq $m.Status "unread"}}<span class="badge badge-red">未读</span>
+      {{else if eq $m.Status "replied"}}<span class="badge badge-green">已回复</span>
+      {{else}}<span class="badge badge-gray">已读</span>{{end}}
+    </div>
+
+    <div class="flex flex-wrap gap-x-5 gap-y-1 text-xs text-ink-3">
+      {{if $m.Phone}}<span>电话：{{$m.Phone}}</span>{{end}}
+      {{if $m.Email}}<span>邮箱：{{$m.Email}}</span>{{end}}
+      <span>时间：{{datetime $m.CreatedAt}}</span>
+      <span>IP：{{$m.IP}}</span>
+    </div>
+
+    <div class="px-4 py-3 rounded-lg bg-surface-3 text-[13px] leading-relaxed whitespace-pre-wrap">{{$m.Content}}</div>
+
+    {{if $m.SourceURL}}
+    <div class="text-xs text-ink-3">
+      来源页：<a class="text-brand-600 hover:underline dark:text-brand-400" href="{{$m.SourceURL}}" target="_blank" rel="noopener">{{$m.SourceURL}}</a>
+    </div>
+    {{end}}
+
+    {{if $m.Reply}}
+    <div>
+      <div class="text-xs text-ink-3 mb-1.5">我的回复 · {{datetime $m.RepliedAt}}</div>
+      <div class="px-4 py-3 rounded-lg border border-brand-200 bg-brand-50 text-[13px] leading-relaxed whitespace-pre-wrap
+                  dark:border-brand-500/30 dark:bg-brand-500/10">{{$m.Reply}}</div>
+    </div>
+    {{end}}
+
+    <form method="post" action="{{$.AdminPath}}/messages/reply" class="space-y-3">
+      <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+      <input type="hidden" name="id" value="{{$m.ID}}">
+      <div>
+        <label class="field-label" for="reply">回复内容</label>
+        <textarea class="input" name="reply" id="reply" rows="4" required
+                  placeholder="记录沟通结论或回复内容…">{{$m.Reply}}</textarea>
+        <span class="field-hint">回复内容仅保存在后台，作为跟进记录。</span>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <button class="btn btn-primary" type="submit">保存回复</button>
+        <button class="btn btn-ghost" type="submit" form="msgReadForm">标记已读</button>
+        {{if $m.Phone}}<a class="btn btn-ghost" href="tel:{{$m.Phone}}">拨打电话</a>{{end}}
+        {{if $m.Email}}<a class="btn btn-ghost" href="mailto:{{$m.Email}}">发送邮件</a>{{end}}
+      </div>
+    </form>
+
+    {{/* 独立表单：避免嵌套 form（HTML 不允许），用 form 属性关联按钮 */}}
+    <form method="post" action="{{$.AdminPath}}/messages/status" id="msgReadForm" class="hidden">
+      <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+      <input type="hidden" name="id" value="{{$m.ID}}">
+      <input type="hidden" name="status" value="read">
+    </form>
+  </div>
+</div>
+{{end}}
+
+{{template "admin_foot" .}}

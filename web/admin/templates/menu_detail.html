@@ -1,0 +1,131 @@
+{{template "admin_head" .}}
+
+{{$menu := .Item}}
+<div class="grid gap-4 items-start grid-cols-1 lg:grid-cols-[minmax(0,1fr)_380px]">
+  <div class="card">
+    <div class="card-head">
+      <h2>菜单项：{{$menu.Name}}</h2>
+      <a class="btn btn-ghost btn-sm" href="{{$.AdminPath}}/menus">← 返回菜单位置</a>
+    </div>
+    {{if .Items2}}
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>标题</th><th class="w-[120px]">链接类型</th><th class="w-[190px]">目标</th><th class="w-[60px]">排序</th><th class="w-[80px]"></th></tr></thead>
+        <tbody>
+          {{range .Items2}}
+          <tr>
+            <td>
+              <span class="title-cell">{{if .Depth}}{{range seq .Depth}}<span class="text-ink-3 select-none">│&nbsp;</span>{{end}}{{end}}{{.Title}}</span>
+              {{if not (bool .IsShow)}}<span class="badge badge-gray ml-1.5">隐藏</span>{{end}}
+            </td>
+            <td>
+              {{if eq .LinkType "category"}}<span class="badge badge-blue">栏目</span>
+              {{else if eq .LinkType "page"}}<span class="badge badge-green">单页</span>
+              {{else if eq .LinkType "post"}}<span class="badge badge-gray">文章</span>
+              {{else}}<span class="badge badge-gray">自定义</span>{{end}}
+            </td>
+            <td class="cell-sub max-w-[190px] truncate">{{.URL}}</td>
+            <td class="tabular-nums">{{.Sort}}</td>
+            <td class="col-actions">
+              <form method="post" action="{{$.AdminPath}}/menu-items/{{.ID}}/delete?menu={{$menu.ID}}"
+                    data-confirm="确认删除菜单项「{{.Title}}」？">
+                <input type="hidden" name="csrf_token" value="{{$.CSRF}}">
+                <button class="btn-link text-red-600 hover:text-red-700 dark:text-red-400" type="submit">删除</button>
+              </form>
+            </td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+    {{else}}
+    <div class="px-4 py-16 text-center">
+      <h3 class="text-sm font-semibold mb-1">该菜单还没有菜单项</h3>
+      <p class="text-[13px] text-ink-3">在右侧表单添加第一项。</p>
+    </div>
+    {{end}}
+  </div>
+
+  <form method="post" action="{{$.AdminPath}}/menu-items/save" class="card"
+        x-data="{ type:'custom' }">
+    <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+    <input type="hidden" name="menu_id" value="{{$menu.ID}}">
+    <div class="card-head"><h2>添加菜单项</h2></div>
+    <div class="p-4 space-y-3.5">
+      <div>
+        <label class="field-label" for="title">标题 <span class="text-red-500">*</span></label>
+        <input class="input" type="text" name="title" id="title" required maxlength="100" placeholder="如 产品中心">
+      </div>
+
+      <div>
+        <label class="field-label" for="link_type">链接类型</label>
+        <select class="input" name="link_type" id="link_type" x-model="type">
+          <option value="custom">自定义链接</option>
+          <option value="category">栏目</option>
+          <option value="page">单页</option>
+        </select>
+      </div>
+
+      <div x-show="type === 'custom'">
+        <label class="field-label" for="url">链接地址</label>
+        <input class="input" type="text" name="url" id="url" placeholder="如 / 或 /c/news">
+      </div>
+
+      <div x-show="type === 'category'" x-cloak>
+        <label class="field-label" for="link_id_cat">选择栏目</label>
+        <select class="input" id="link_id_cat" onchange="setLinkFromOpt(this)">
+          <option value="">请选择</option>
+          {{range .Categories}}<option value="{{.ID}}" data-url="/c/{{.Slug}}">{{.Name}}</option>{{end}}
+        </select>
+      </div>
+
+      <div x-show="type === 'page'" x-cloak>
+        <label class="field-label" for="link_id_page">选择单页</label>
+        <select class="input" id="link_id_page" onchange="setLinkFromOpt(this)">
+          <option value="">请选择</option>
+          {{range .Options.pages}}<option value="{{.ID}}" data-url="/p/{{.Slug}}">{{.Title}}</option>{{end}}
+        </select>
+      </div>
+      <input type="hidden" name="link_id" id="link_id" value="0">
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="field-label" for="parent_id">上级菜单项</label>
+          <select class="input" name="parent_id" id="parent_id">
+            <option value="0">顶级</option>
+            {{range .Items}}<option value="{{.ID}}">{{.Title}}</option>{{end}}
+          </select>
+        </div>
+        <div>
+          <label class="field-label" for="target">打开方式</label>
+          <select class="input" name="target" id="target">
+            <option value="_self">当前窗口</option>
+            <option value="_blank">新窗口</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 items-end">
+        <div>
+          <label class="field-label" for="sort">排序</label>
+          <input class="input" type="number" name="sort" id="sort" value="0">
+        </div>
+        <label class="flex items-center gap-2 h-9 text-[13px] cursor-pointer">
+          <input type="checkbox" class="checkbox" name="is_show" value="1" checked> 显示
+        </label>
+      </div>
+
+      <button class="btn btn-primary btn-block" type="submit">+ 添加菜单项</button>
+    </div>
+  </form>
+</div>
+
+<script>
+function setLinkFromOpt(sel) {
+  var opt = sel.options[sel.selectedIndex];
+  document.getElementById('url').value = opt.dataset.url || '';
+  document.getElementById('link_id').value = sel.value || '0';
+}
+</script>
+
+{{template "admin_foot" .}}

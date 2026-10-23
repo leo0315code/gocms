@@ -1,0 +1,53 @@
+{{template "admin_head" .}}
+
+<div class="grid gap-4 items-start grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px]">
+  <div class="card">
+    <div class="card-head"><h2>菜单位置</h2></div>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>名称</th><th class="w-[140px]">标识</th><th class="w-[140px]"></th></tr></thead>
+        <tbody>
+          {{range .Items}}
+          <tr>
+            <td><a class="title-cell" href="{{$.AdminPath}}/menus/{{.ID}}">{{.Name}}</a></td>
+            <td><code class="px-1.5 py-0.5 rounded bg-surface-3 font-mono text-xs">{{.Key}}</code></td>
+            <td class="col-actions">
+              <div class="flex items-center justify-end gap-3">
+                <a class="btn-link" href="{{$.AdminPath}}/menus/{{.ID}}">管理菜单项</a>
+                <form method="post" action="{{$.AdminPath}}/menus/{{.ID}}/delete" class="inline"
+                      data-confirm="确认删除菜单「{{.Name}}」及其全部菜单项？">
+                  <input type="hidden" name="csrf_token" value="{{$.CSRF}}">
+                  <button class="btn-link text-red-600 hover:text-red-700 dark:text-red-400" type="submit">删除</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+    <div class="px-4 py-3 border-t border-line text-xs text-ink-3 leading-relaxed">
+      标识为 <code class="px-1 rounded bg-surface-3 font-mono">main</code> 的菜单显示在顶部导航，
+      <code class="px-1 rounded bg-surface-3 font-mono">footer</code> 显示在页脚。主题通过标识读取菜单。
+    </div>
+  </div>
+
+  <form method="post" action="{{$.AdminPath}}/menus/save" class="card">
+    <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+    <div class="card-head"><h2>新建菜单位置</h2></div>
+    <div class="p-4 space-y-3.5">
+      <div>
+        <label class="field-label" for="name">菜单名称</label>
+        <input class="input" type="text" name="name" id="name" required maxlength="80" placeholder="如 侧栏导航">
+      </div>
+      <div>
+        <label class="field-label" for="key">菜单标识</label>
+        <input class="input" type="text" name="key" id="key" required placeholder="如 sidebar">
+        <span class="field-hint">英文小写，用于模板调用。</span>
+      </div>
+      <button class="btn btn-primary btn-block" type="submit">+ 创建菜单</button>
+    </div>
+  </form>
+</div>
+
+{{template "admin_foot" .}}

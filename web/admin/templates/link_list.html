@@ -1,0 +1,92 @@
+{{template "admin_head" .}}
+
+<div class="grid gap-4 items-start grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px]">
+  <div class="card">
+    <div class="card-head"><h2>友情链接</h2><span class="text-xs text-ink-3">显示在侧栏</span></div>
+    {{if .Items}}
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>名称</th><th>地址</th><th class="w-[70px]">排序</th><th class="w-[80px]">状态</th><th class="w-[110px]"></th></tr></thead>
+        <tbody>
+          {{range .Items}}
+          <tr>
+            <td><span class="title-cell">{{.Name}}</span>{{if .Description}}<div class="cell-sub">{{.Description}}</div>{{end}}</td>
+            <td class="cell-sub max-w-[220px] truncate">
+              <a class="hover:underline" href="{{.URL}}" target="_blank" rel="noopener nofollow">{{.URL}}</a>
+            </td>
+            <td class="tabular-nums">{{.Sort}}</td>
+            <td>{{if bool .IsShow}}<span class="badge badge-green">显示</span>{{else}}<span class="badge badge-gray">隐藏</span>{{end}}</td>
+            <td class="col-actions">
+              <div class="flex items-center justify-end gap-3">
+                <a class="btn-link" href="{{$.AdminPath}}/links?edit={{.ID}}">编辑</a>
+                <form method="post" action="{{$.AdminPath}}/links/{{.ID}}/delete" class="inline"
+                      data-confirm="确认删除该友链？">
+                  <input type="hidden" name="csrf_token" value="{{$.CSRF}}">
+                  <button class="btn-link text-red-600 hover:text-red-700 dark:text-red-400" type="submit">删除</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+    {{else}}
+    <div class="px-4 py-16 text-center">
+      <h3 class="text-sm font-semibold mb-1">还没有友链</h3>
+      <p class="text-[13px] text-ink-3">添加合作伙伴或行业站点链接。</p>
+    </div>
+    {{end}}
+  </div>
+
+  <form method="post" action="{{$.AdminPath}}/links/save" class="card">
+    <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+    <div class="card-head"><h2>{{if .Item}}编辑友链{{else}}添加友链{{end}}</h2></div>
+    <div class="p-4 space-y-3.5">
+      <input type="hidden" name="id" value="{{if .Item}}{{.Item.ID}}{{end}}">
+
+      <div>
+        <label class="field-label" for="name">名称 <span class="text-red-500">*</span></label>
+        <input class="input" type="text" name="name" id="name" required maxlength="100" value="{{if .Item}}{{.Item.Name}}{{end}}">
+      </div>
+
+      <div>
+        <label class="field-label" for="url">链接 <span class="text-red-500">*</span></label>
+        <input class="input" type="url" name="url" id="url" required value="{{if .Item}}{{.Item.URL}}{{end}}" placeholder="https://">
+      </div>
+
+      <div>
+        <label class="field-label" for="logo">Logo</label>
+        <div class="flex items-center gap-2">
+          <div class="w-14 h-10 shrink-0 rounded border border-line bg-surface-3 grid place-items-center overflow-hidden text-[11px] text-ink-3"
+               id="pv_logo">{{if .Item}}{{if .Item.Logo}}<img src="{{.Item.Logo}}" alt="" class="w-full h-full object-cover">{{else}}无图{{end}}{{else}}无图{{end}}</div>
+          <input class="input flex-1 min-w-0" type="text" name="logo" id="logo" value="{{if .Item}}{{.Item.Logo}}{{end}}">
+          <button type="button" class="btn btn-ghost btn-sm shrink-0" onclick="pickImage('logo','pv_logo')">选择</button>
+        </div>
+      </div>
+
+      <div>
+        <label class="field-label" for="description">说明</label>
+        <input class="input" type="text" name="description" id="description" maxlength="255" value="{{if .Item}}{{.Item.Description}}{{end}}">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 items-end">
+        <div>
+          <label class="field-label" for="sort">排序</label>
+          <input class="input" type="number" name="sort" id="sort" value="{{if .Item}}{{.Item.Sort}}{{else}}0{{end}}">
+        </div>
+        <label class="flex items-center gap-2 h-9 text-[13px] cursor-pointer">
+          <input type="checkbox" class="checkbox" name="is_show" value="1" {{if .Item}}{{if bool .Item.IsShow}}checked{{end}}{{else}}checked{{end}}>
+          显示
+        </label>
+      </div>
+
+      <div class="space-y-2 pt-1">
+        <button class="btn btn-primary btn-block" type="submit">保存</button>
+        {{if .Item}}<a class="btn btn-ghost btn-block" href="{{$.AdminPath}}/links">取消编辑</a>{{end}}
+      </div>
+    </div>
+  </form>
+</div>
+
+{{template "admin_foot" .}}

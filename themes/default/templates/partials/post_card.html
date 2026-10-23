@@ -1,0 +1,22 @@
+{{define "post-card"}}
+<article class="post-card">
+  {{if .Cover}}
+  <a class="post-card-cover" href="/a/{{.Slug}}">
+    <img src="{{.Cover}}" alt="{{.Title}}" loading="lazy">
+  </a>
+  {{end}}
+  <div class="post-card-body">
+    <div class="post-card-meta">
+      {{if .Category}}<a class="chip" href="/c/{{.Category.Slug}}">{{.Category.Name}}</a>{{end}}
+      <time>{{date .PublishedAt}}</time>
+      {{if .IsTop}}<span class="badge badge-top">置顶</span>{{end}}
+    </div>
+    <h3 class="post-card-title"><a href="/a/{{.Slug}}">{{.Title}}</a></h3>
+    <p class="post-card-summary">{{default (excerpt .Content 120) .Summary}}</p>
+    <div class="post-card-foot">
+      <span class="views">{{.Views}} 次阅读</span>
+      <a class="read-more" href="/a/{{.Slug}}">阅读全文 →</a>
+    </div>
+  </div>
+</article>
+{{end}}

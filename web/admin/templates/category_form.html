@@ -1,0 +1,190 @@
+{{template "admin_head" .}}
+
+{{$cat := .Item}}
+<div class="grid gap-4 items-start grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px]">
+  <form method="post" action="{{$.AdminPath}}/categories/save" class="space-y-4">
+    <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+    <input type="hidden" name="id" value="{{$cat.ID}}">
+
+    <div class="card">
+      <div class="card-head"><h2>栏目信息</h2></div>
+      <div class="p-4 space-y-3.5">
+        <div class="grid sm:grid-cols-2 gap-3.5">
+          <div>
+            <label class="field-label" for="name">栏目名称 <span class="text-red-500">*</span></label>
+            <input class="input" type="text" name="name" id="name" value="{{$cat.Name}}" required maxlength="100" placeholder="如 新闻动态">
+          </div>
+          <div>
+            <label class="field-label" for="slug">URL 标识</label>
+            <input class="input" type="text" name="slug" id="slug" value="{{$cat.Slug}}" placeholder="留空自动生成">
+            <span class="field-hint">访问路径 /c/标识</span>
+          </div>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-3.5">
+          <div>
+            <label class="field-label" for="parent_id">上级栏目</label>
+            <select class="input" name="parent_id" id="parent_id">
+              <option value="0">顶级栏目</option>
+              {{range .CatTree}}
+                {{if ne .ID $cat.ID}}
+                <option value="{{.ID}}" {{if eq .ID $cat.ParentID}}selected{{end}}>{{.Name}}</option>
+                {{range .Children}}{{if ne .ID $cat.ID}}<option value="{{.ID}}" {{if eq .ID $cat.ParentID}}selected{{end}}>　{{.Name}}</option>{{end}}{{end}}
+                {{end}}
+              {{end}}
+            </select>
+          </div>
+          <div>
+            <label class="field-label" for="type">栏目类型</label>
+            <select class="input" name="type" id="type">
+              <option value="post" {{if eq $cat.Type "post"}}selected{{end}}>文章栏目</option>
+              <option value="product" {{if eq $cat.Type "product"}}selected{{end}}>产品栏目</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="field-label" for="description">栏目描述</label>
+          <textarea class="input" name="description" id="description" rows="3" maxlength="500"
+                    placeholder="显示在栏目页顶部，也用作 SEO 描述">{{$cat.Description}}</textarea>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-3.5">
+          <div>
+            <label class="field-label" for="cover">栏目封面</label>
+            <div class="flex items-center gap-2">
+              <div class="w-14 h-10 shrink-0 rounded border border-line bg-surface-3 grid place-items-center overflow-hidden text-[11px] text-ink-3"
+                   id="pv_cover">{{if $cat.Cover}}<img src="{{$cat.Cover}}" alt="" class="w-full h-full object-cover">{{else}}无图{{end}}</div>
+              <input class="input flex-1 min-w-0" type="text" name="cover" id="cover" value="{{$cat.Cover}}" placeholder="图片地址">
+              <button type="button" class="btn btn-ghost btn-sm shrink-0" onclick="pickImage('cover','pv_cover')">选择</button>
+            </div>
+          </div>
+          <div>
+            <label class="field-label" for="sort">排序</label>
+            <input class="input" type="number" name="sort" id="sort" value="{{$cat.Sort}}">
+            <span class="field-hint">数值小的排前面。</span>
+          </div>
+        </div>
+
+        <label class="flex items-center gap-2 text-[13px] cursor-pointer">
+          <input type="checkbox" class="checkbox" name="is_nav" value="1" {{if bool $cat.IsNav}}checked{{end}}> 在导航中显示
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>SEO 与模板</h2></div>
+      <div class="p-4 space-y-3.5">
+        <div class="grid sm:grid-cols-2 gap-3.5">
+          <div>
+            <label class="field-label" for="seo_title">SEO 标题</label>
+            <input class="input" type="text" name="seo_title" id="seo_title" value="{{$cat.SEOTitle}}" maxlength="200" placeholder="留空使用栏目名">
+          </div>
+          <div>
+            <label class="field-label" for="seo_keywords">SEO 关键词</label>
+            <input class="input" type="text" name="seo_keywords" id="seo_keywords" value="{{$cat.SEOKeywords}}" maxlength="300" placeholder="英文逗号分隔">
+          </div>
+        </div>
+        <div>
+          <label class="field-label" for="seo_description">SEO 描述</label>
+          <textarea class="input" name="seo_description" id="seo_description" rows="2" maxlength="500">{{$cat.SEODescription}}</textarea>
+        </div>
+        <div>
+          <label class="field-label" for="template">自定义模板</label>
+          <input class="input" type="text" name="template" id="template" value="{{$cat.Template}}" placeholder="如 category-product.html">
+          <span class="field-hint">留空使用主题默认 category 模板。</span>
+        </div>
+        <div class="flex items-center gap-2 pt-2 border-t border-line">
+          <button class="btn btn-primary" type="submit">保存栏目</button>
+          <a class="btn btn-ghost" href="{{$.AdminPath}}/categories">返回</a>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <div class="space-y-4">
+    {{if $cat.ID}}
+    <div class="card">
+      <div class="card-head">
+        <h2>自定义字段</h2>
+        <span class="text-xs text-ink-3">该栏目的扩展属性</span>
+      </div>
+      <div class="p-4">
+        {{if .Fields}}
+        <div class="space-y-2 mb-4">
+          {{range .Fields}}
+          <div class="flex items-center gap-2 px-2.5 py-2 rounded bg-surface-3">
+            <div class="flex-1 min-w-0">
+              <div class="text-[13px] font-medium truncate">{{.Label}}</div>
+              <div class="text-[11px] text-ink-3">{{.Name}} · {{.Type}}{{if .Required}} · 必填{{end}}</div>
+            </div>
+            <form method="post" action="{{$.AdminPath}}/fields/{{.ID}}/delete?cat={{$cat.ID}}"
+                  data-confirm="确认删除该字段及其数据？">
+              <input type="hidden" name="csrf_token" value="{{$.CSRF}}">
+              <button class="btn-link text-red-600 hover:text-red-700 dark:text-red-400" type="submit">删除</button>
+            </form>
+          </div>
+          {{end}}
+        </div>
+        {{else}}
+        <p class="text-xs text-ink-3 mb-4 leading-relaxed">还没有字段。添加字段后，该栏目下的文章编辑页会出现对应输入框。</p>
+        {{end}}
+      </div>
+    </div>
+
+    <form method="post" action="{{$.AdminPath}}/fields/save" class="card">
+      <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+      <input type="hidden" name="category_id" value="{{$cat.ID}}">
+      <div class="card-head"><h2>添加字段</h2></div>
+      <div class="p-4 space-y-3.5">
+        <div>
+          <label class="field-label" for="field_label">显示名称</label>
+          <input class="input" type="text" name="field_label" id="field_label" required placeholder="如 参考价格">
+        </div>
+        <div>
+          <label class="field-label" for="field_name">字段标识</label>
+          <input class="input" type="text" name="field_name" id="field_name" required placeholder="如 price">
+          <span class="field-hint">英文小写，用于模板与接口。</span>
+        </div>
+        <div>
+          <label class="field-label" for="field_type">字段类型</label>
+          <select class="input" name="field_type" id="field_type">
+            <option value="text">单行文本</option>
+            <option value="textarea">多行文本</option>
+            <option value="number">数字</option>
+            <option value="select">下拉选择</option>
+            <option value="date">日期</option>
+            <option value="image">图片</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label" for="field_options">选项（下拉用）</label>
+          <textarea class="input" name="field_options" id="field_options" rows="2" placeholder="每行一个选项"></textarea>
+        </div>
+        <div>
+          <label class="field-label" for="field_placeholder">占位提示</label>
+          <input class="input" type="text" name="field_placeholder" id="field_placeholder" placeholder="输入框内的提示文字">
+        </div>
+        <div class="grid grid-cols-2 gap-3 items-end">
+          <div>
+            <label class="field-label" for="field_sort">排序</label>
+            <input class="input" type="number" name="field_sort" id="field_sort" value="0">
+          </div>
+          <label class="flex items-center gap-2 h-9 text-[13px] cursor-pointer">
+            <input type="checkbox" class="checkbox" name="field_required" value="1"> 必填
+          </label>
+        </div>
+        <button class="btn btn-primary btn-block" type="submit">+ 添加字段</button>
+      </div>
+    </form>
+    {{else}}
+    <div class="card">
+      <div class="p-4">
+        <p class="text-[13px] text-ink-3 m-0 leading-relaxed">保存栏目后，可在此为其添加自定义字段，让内容模型更灵活（例如产品参数、案例行业、团队成员职位等）。</p>
+      </div>
+    </div>
+    {{end}}
+  </div>
+</div>
+
+{{template "admin_foot" .}}

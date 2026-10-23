@@ -1,0 +1,35 @@
+{{template "head" .}}
+
+<div class="page-hero">
+  <div class="container">
+    <h1 class="page-title">{{if .Query}}搜索：{{.Query}}{{else}}站内搜索{{end}}</h1>
+    {{if .Query}}<p class="page-desc">找到 {{.Total}} 条结果</p>{{end}}
+    <form class="search-form search-form-lg" action="/search" method="get">
+      <input type="search" name="q" value="{{.Query}}" placeholder="输入关键词搜索文章…" aria-label="搜索">
+      <button type="submit">搜索</button>
+    </form>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container two-col">
+    <div class="col-main">
+      {{if .Posts}}
+        <div class="post-list">
+          {{range .Posts}}{{template "post-card" .}}{{end}}
+        </div>
+        {{template "pagination" .Pagination}}
+      {{else if .Query}}
+        <div class="empty-state">
+          <h3>没有找到相关内容</h3>
+          <p>换个关键词试试，或浏览下方栏目。</p>
+        </div>
+      {{else}}
+        <div class="empty-state"><h3>请输入关键词</h3><p>可以搜索标题、摘要与正文内容。</p></div>
+      {{end}}
+    </div>
+    {{template "sidebar" .}}
+  </div>
+</section>
+
+{{template "foot" .}}

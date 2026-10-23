@@ -1,0 +1,37 @@
+{{define "head"}}<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{.SEO.Title}}</title>
+  {{if .SEO.Keywords}}<meta name="keywords" content="{{.SEO.Keywords}}">{{end}}
+  {{if .SEO.Description}}<meta name="description" content="{{.SEO.Description}}">{{end}}
+  {{if .SEO.Canonical}}<link rel="canonical" href="{{.SEO.Canonical}}">{{end}}
+  {{if .SEO.NoIndex}}<meta name="robots" content="noindex,follow">{{else}}<meta name="robots" content="index,follow">{{end}}
+
+  <meta property="og:site_name" content="{{.SiteName}}">
+  <meta property="og:type" content="{{default "website" .SEO.Type}}">
+  <meta property="og:title" content="{{.SEO.Title}}">
+  {{if .SEO.Description}}<meta property="og:description" content="{{.SEO.Description}}">{{end}}
+  {{if .SEO.Canonical}}<meta property="og:url" content="{{.SEO.Canonical}}">{{end}}
+  {{if .SEO.Image}}<meta property="og:image" content="{{.SEO.Image}}">{{end}}
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#2563eb">
+
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="alternate" type="application/rss+xml" title="{{.SiteName}}" href="/rss.xml">
+  {{if .Site.site_favicon}}<link rel="icon" href="{{.Site.site_favicon}}">{{end}}
+  <script>(function(){try{var t=localStorage.getItem('theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+</head>
+<body>
+{{template "header" .}}
+{{if .Flash}}<div class="flash flash-{{.Flash.Type}}"><div class="container">{{.Flash.Msg}}</div></div>{{end}}
+<main class="site-main">
+{{end}}
+
+{{define "foot"}}
+</main>
+{{template "footer" .}}
+<script src="/assets/js/main.js" defer></script>
+</body>
+</html>{{end}}

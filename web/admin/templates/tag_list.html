@@ -1,0 +1,59 @@
+{{template "admin_head" .}}
+
+<div class="grid gap-4 items-start grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px]">
+  <div class="card">
+    <div class="card-head">
+      <h2>全部标签</h2>
+      <span class="text-xs text-ink-3">共 {{.Total}} 个</span>
+    </div>
+    {{if .Items}}
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>标签</th><th class="w-[160px]">URL</th><th class="w-[80px]">文章数</th><th class="w-[110px]"></th></tr></thead>
+        <tbody>
+          {{range .Items}}
+          <tr>
+            <td><span class="badge badge-blue">{{.Name}}</span></td>
+            <td class="cell-sub">/t/{{.Slug}}</td>
+            <td class="tabular-nums">{{.Count}}</td>
+            <td class="col-actions">
+              <div class="flex items-center justify-end gap-3">
+                <a class="btn-link" href="/t/{{.Slug}}" target="_blank" rel="noopener">查看</a>
+                <form method="post" action="{{$.AdminPath}}/tags/{{.ID}}/delete" class="inline"
+                      data-confirm="确认删除标签「{{.Name}}」？">
+                  <input type="hidden" name="csrf_token" value="{{$.CSRF}}">
+                  <button class="btn-link text-red-600 hover:text-red-700 dark:text-red-400" type="submit">删除</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
+    {{else}}
+    <div class="px-4 py-16 text-center">
+      <h3 class="text-sm font-semibold mb-1">还没有标签</h3>
+      <p class="text-[13px] text-ink-3">在文章编辑页输入标签即会自动创建。</p>
+    </div>
+    {{end}}
+  </div>
+
+  <form method="post" action="{{$.AdminPath}}/tags/save" class="card">
+    <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+    <div class="card-head"><h2>新建标签</h2></div>
+    <div class="p-4 space-y-3.5">
+      <div>
+        <label class="field-label" for="name">标签名称</label>
+        <input class="input" type="text" name="name" id="name" required maxlength="60" placeholder="如 数字化转型">
+      </div>
+      <div>
+        <label class="field-label" for="slug">URL 标识</label>
+        <input class="input" type="text" name="slug" id="slug" placeholder="留空自动生成">
+      </div>
+      <button class="btn btn-primary btn-block" type="submit">+ 创建标签</button>
+    </div>
+  </form>
+</div>
+
+{{template "admin_foot" .}}

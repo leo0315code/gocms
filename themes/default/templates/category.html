@@ -1,0 +1,36 @@
+{{template "head" .}}
+
+<div class="page-hero">
+  <div class="container">
+    {{template "breadcrumb" .}}
+    <h1 class="page-title">{{.Category.Name}}</h1>
+    {{if .Category.Description}}<p class="page-desc">{{.Category.Description}}</p>{{end}}
+  </div>
+</div>
+
+<section class="section">
+  <div class="container two-col">
+    <div class="col-main">
+      {{if .Categories}}
+      <div class="sub-cats">
+        {{range .Categories}}<a class="chip chip-lg" href="/c/{{.Slug}}">{{.Name}}</a>{{end}}
+      </div>
+      {{end}}
+
+      {{if .Posts}}
+        <div class="post-list">
+          {{range .Posts}}{{template "post-card" .}}{{end}}
+        </div>
+        {{template "pagination" .Pagination}}
+      {{else}}
+        <div class="empty-state">
+          <h3>暂无内容</h3>
+          <p>该栏目下还没有已发布的文章。</p>
+        </div>
+      {{end}}
+    </div>
+    {{template "sidebar" .}}
+  </div>
+</section>
+
+{{template "foot" .}}

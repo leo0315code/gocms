@@ -1,0 +1,77 @@
+{{template "head" .}}
+
+<article class="article">
+  <div class="container article-container">
+    {{template "breadcrumb" .}}
+
+    <header class="article-header">
+      {{if .Post.Category}}
+      <a class="chip" href="/c/{{.Post.Category.Slug}}">{{.Post.Category.Name}}</a>
+      {{end}}
+      <h1 class="article-title">{{.Post.Title}}</h1>
+      <div class="article-meta">
+        <time datetime="{{datetime .Post.PublishedAt}}">{{date .Post.PublishedAt}}</time>
+        <span class="dot">·</span>
+        <span>{{.Post.Views}} 次阅读</span>
+        {{if .Post.Author}}<span class="dot">·</span><span>{{.Post.Author.DisplayName}}</span>{{end}}
+      </div>
+      {{if .Post.Summary}}<p class="article-summary">{{.Post.Summary}}</p>{{end}}
+    </header>
+
+    {{if .Post.Cover}}
+    <figure class="article-cover"><img src="{{.Post.Cover}}" alt="{{.Post.Title}}"></figure>
+    {{end}}
+
+    <div class="article-content prose">
+      {{render .Post.ContentFormat .Post.Content}}
+    </div>
+
+    {{if .Fields}}
+    <div class="article-fields">
+      <h3 class="fields-title">详细信息</h3>
+      <dl class="fields-list">
+        {{range .Fields}}
+        <div class="field-row">
+          <dt>{{.Field.Label}}</dt>
+          <dd>{{.Value}}</dd>
+        </div>
+        {{end}}
+      </dl>
+    </div>
+    {{end}}
+
+    {{if .Post.Tags}}
+    <div class="article-tags">
+      {{range .Post.Tags}}<a class="tag" href="/t/{{.Slug}}">{{.Name}}</a>{{end}}
+    </div>
+    {{end}}
+
+    <nav class="article-nav">
+      {{if .Prev}}
+      <a class="article-nav-item prev" href="/a/{{.Prev.Slug}}">
+        <span class="nav-label">上一篇</span>
+        <span class="nav-title">{{.Prev.Title}}</span>
+      </a>
+      {{else}}<span class="article-nav-item disabled"></span>{{end}}
+      {{if .Next}}
+      <a class="article-nav-item next" href="/a/{{.Next.Slug}}">
+        <span class="nav-label">下一篇</span>
+        <span class="nav-title">{{.Next.Title}}</span>
+      </a>
+      {{else}}<span class="article-nav-item disabled"></span>{{end}}
+    </nav>
+  </div>
+</article>
+
+{{if .Related}}
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-head"><h2 class="section-title">相关阅读</h2></div>
+    <div class="post-grid">
+      {{range .Related}}{{template "post-card" .}}{{end}}
+    </div>
+  </div>
+</section>
+{{end}}
+
+{{template "foot" .}}

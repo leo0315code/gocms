@@ -1,0 +1,24 @@
+{{define "hero"}}
+{{if .Banner}}
+<section class="hero">
+  <div class="hero-slides" id="heroSlides">
+    {{range $i, $b := .Banner}}
+    <div class="hero-slide{{if eq $i 0}} active{{end}}">
+      {{if $b.Image}}<img class="hero-bg" src="{{$b.Image}}" alt="{{$b.Title}}" loading="{{if eq $i 0}}eager{{else}}lazy{{end}}">{{end}}
+      <div class="hero-overlay"></div>
+      <div class="container hero-content">
+        <h1 class="hero-title">{{$b.Title}}</h1>
+        {{if $b.Subtitle}}<p class="hero-sub">{{$b.Subtitle}}</p>{{end}}
+        {{if $b.URL}}<a class="btn btn-primary btn-lg" href="{{$b.URL}}">{{default "了解详情" $b.ButtonText}}</a>{{end}}
+      </div>
+    </div>
+    {{end}}
+  </div>
+  {{if gt (len .Banner) 1}}
+  <div class="hero-dots" id="heroDots">
+    {{range $i, $b := .Banner}}<button class="hero-dot{{if eq $i 0}} active{{end}}" data-index="{{$i}}" aria-label="第 {{add $i 1}} 张"></button>{{end}}
+  </div>
+  {{end}}
+</section>
+{{end}}
+{{end}}

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登录 · 管理后台</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="stylesheet" href="{{$.AdminPath}}/assets/app.css">
+<script>(function(){try{var t=localStorage.getItem('gocms-theme')||localStorage.getItem('admin-theme')||'light';if(t==='dark')document.documentElement.classList.add('dark');}catch(e){}})();</script>
+</head>
+<body class="min-h-screen grid place-items-center bg-surface-2 text-ink px-4 py-10" data-base-path="{{.AdminPath}}">
+
+<div class="w-full max-w-[380px]">
+  <div class="flex items-center gap-2.5 mb-7">
+    <span class="w-9 h-9 rounded-[10px] grid place-items-center
+                 bg-gradient-to-br from-brand-600 to-brand-400 text-white font-bold text-[17px]">G</span>
+    <div class="leading-tight">
+      <strong class="block text-[15px] font-semibold">GoCMS</strong>
+      <em class="block text-xs not-italic text-ink-3">内容管理系统</em>
+    </div>
+  </div>
+
+  <div class="card p-6">
+    <h1 class="text-lg font-semibold mb-1">登录管理后台</h1>
+    <p class="text-[13px] text-ink-3 mb-5">{{.SiteName}}</p>
+
+    {{if .Flash}}
+    <div class="mb-4 px-3 py-2 rounded border text-[13px]
+                {{if eq .Flash.Type "success"}}bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-500/10 dark:border-emerald-500/30 dark:text-emerald-300
+                {{else}}bg-red-50 border-red-200 text-red-800 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-300{{end}}">{{.Flash.Msg}}</div>
+    {{end}}
+
+    <form method="post" action="{{$.AdminPath}}/login" class="space-y-4">
+      <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+      <input type="hidden" name="next" value="{{.Options.next}}">
+
+      <div>
+        <label class="field-label" for="username">用户名</label>
+        <input class="input" id="username" type="text" name="username" required autofocus
+               autocomplete="username" placeholder="请输入用户名">
+      </div>
+
+      <div>
+        <label class="field-label" for="password">密码</label>
+        <input class="input" id="password" type="password" name="password" required
+               autocomplete="current-password" placeholder="请输入密码">
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block !h-10">登 录</button>
+    </form>
+  </div>
+
+  <div class="mt-5 text-center text-[13px]">
+    <a class="text-ink-3 hover:text-brand-600 dark:hover:text-brand-400" href="/">← 返回站点首页</a>
+  </div>
+</div>
+
+<script src="{{$.AdminPath}}/assets/app.js" defer></script>
+</body>
+</html>

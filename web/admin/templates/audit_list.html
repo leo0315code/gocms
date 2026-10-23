@@ -1,0 +1,86 @@
+{{template "admin_head" .}}
+
+<div class="card">
+  <div class="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-line">
+    <span class="text-[13px] text-ink-3">共 {{.Total}} 条记录，保留 180 天</span>
+
+    <form method="get" action="{{$.AdminPath}}/audits" class="flex flex-wrap items-center gap-2 ml-auto">
+      <select name="user" onchange="this.form.submit()" class="input !w-[130px]">
+        <option value="">全部操作人</option>
+        {{range .Options.users}}
+        <option value="{{.}}" {{if eq . $.Options.user}}selected{{end}}>{{.}}</option>
+        {{end}}
+      </select>
+
+      <select name="action" onchange="this.form.submit()" class="input !w-[160px]">
+        <option value="">全部动作</option>
+        {{range .Options.actions}}
+        <option value="{{.}}" {{if eq . $.Options.action}}selected{{end}}>{{.}}</option>
+        {{end}}
+      </select>
+
+      <input type="search" name="q" value="{{.Query}}" placeholder="搜索对象或说明…" class="input !w-[180px]">
+      <button class="btn btn-ghost" type="submit">搜索</button>
+    </form>
+
+    <form method="post" action="{{$.AdminPath}}/audits/purge"
+          data-confirm="确认清理 180 天前的日志？该操作不可恢复。">
+      <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+      <button class="btn btn-ghost" type="submit">清理旧日志</button>
+    </form>
+  </div>
+
+  {{if .Items}}
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr>
+          <th class="w-[150px]">时间</th>
+          <th class="w-[110px]">操作人</th>
+          <th class="w-[140px]">动作</th>
+          <th>对象</th>
+          <th>说明</th>
+          <th class="w-[130px]">IP</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .Items}}
+        <tr>
+          <td class="cell-sub whitespace-nowrap">{{datetime .CreatedAt}}</td>
+          <td>
+            {{if .Username}}<span class="text-[13px] font-medium">{{.Username}}</span>
+            {{else}}<span class="text-ink-3">—</span>{{end}}
+          </td>
+          <td>
+            <code class="px-1.5 py-0.5 rounded bg-surface-3 font-mono text-[11px]">{{.Action}}</code>
+          </td>
+          <td class="text-[13px]">{{if .Target}}{{.Target}}{{else}}<span class="text-ink-3">—</span>{{end}}</td>
+          <td class="cell-sub">{{if .Detail}}{{.Detail}}{{else}}<span class="text-ink-3">—</span>{{end}}</td>
+          <td class="cell-sub font-mono whitespace-nowrap">{{.IP}}</td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+  {{else}}
+  <div class="px-4 py-16 text-center">
+    <h3 class="text-sm font-semibold mb-1">暂无日志</h3>
+    <p class="text-[13px] text-ink-3">后台的写操作（登录、发文、改设置、删除等）会自动记录在这里。</p>
+  </div>
+  {{end}}
+
+  {{if .Pagination}}
+  <div class="card-foot">
+    <span class="text-xs text-ink-3">共 {{.Total}} 条</span>
+    <div class="flex items-center gap-1">
+      {{if .Pagination.HasPrev}}<a class="pager-btn" href="{{.Pagination.PrevURL}}">上一页</a>{{else}}<span class="pager-btn disabled">上一页</span>{{end}}
+      {{range .Pagination.Pages}}
+        {{if .Current}}<span class="pager-btn current">{{.Num}}</span>{{else}}<a class="pager-btn" href="{{.URL}}">{{.Num}}</a>{{end}}
+      {{end}}
+      {{if .Pagination.HasNext}}<a class="pager-btn" href="{{.Pagination.NextURL}}">下一页</a>{{else}}<span class="pager-btn disabled">下一页</span>{{end}}
+    </div>
+  </div>
+  {{end}}
+</div>
+
+{{template "admin_foot" .}}

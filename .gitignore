@@ -1,0 +1,25 @@
+.env
+.env.local
+/gocms
+/gocms-linux-amd64
+/gocms-darwin-arm64
+uploads/*
+!uploads/.gitkeep
+.run/
+*.log
+.DS_Store
+
+# go build 在 macOS 上的临时探测文件
+gocms-go-tmp-*
+gocms.tmp
+
+# 编辑器 / 工具产生的临时副本（形如 foo.go.1712345678901）
+*.go.[0-9]*
+
+# 截图产物可复现，但保留在仓库便于查阅；如需瘦身可解除注释
+# docs/screenshots/
+
+# Node 仅用于构建后台样式；构建产物 app.css / alpine.js 直接提交，部署无需 Node
+node_modules/
+
+# package-lock.json 必须提交：锁定 tailwind 版本，否则换台机器编出的 CSS 可能不同

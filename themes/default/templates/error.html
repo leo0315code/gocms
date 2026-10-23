@@ -1,0 +1,16 @@
+{{template "head" .}}
+
+<section class="section error-section">
+  <div class="container error-inner">
+    <div class="error-code">404</div>
+    <h1 class="error-title">{{default "页面不存在" .Error}}</h1>
+    <p class="error-desc">你访问的页面可能已被移除、重命名，或暂时不可用。</p>
+    {{if .Form.detail}}<pre class="error-detail">{{.Form.detail}}</pre>{{end}}
+    <div class="error-actions">
+      <a class="btn btn-primary" href="/">返回首页</a>
+      <a class="btn btn-ghost" href="/search">搜索内容</a>
+    </div>
+  </div>
+</section>
+
+{{template "foot" .}}
