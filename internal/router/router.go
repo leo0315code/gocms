@@ -136,6 +136,7 @@ func Build(cfg *config.Config, repo *repository.Repo, h *handler.Handler, ap *ad
 
 	// 操作日志（仅 admin）
 	mux.Handle("GET "+base+"/audits", authAdmin(h.AuditList))
+	mux.Handle("GET "+base+"/audits/export.csv", authAdmin(h.AuditExportCSV))
 	mux.Handle("POST "+base+"/audits/purge", authAdmin(h.AuditPurge))
 
 	// ================= 静态资源 =================

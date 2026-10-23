@@ -27,6 +27,10 @@ const (
 	AuditReauthOK   = "settings.reauth_ok"
 	AuditReauthFail = "settings.reauth_fail"
 
+	// 日志自身的管理动作
+	AuditAuditExport = "audit.export"
+	AuditAuditPurge  = "audit.purge"
+
 	AuditPostCreate = "post.create"
 	AuditPostUpdate = "post.update"
 	AuditPostDelete = "post.delete"

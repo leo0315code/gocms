@@ -131,6 +131,7 @@ gocms/
 - **操作日志**：登录、发文、改设置、删除等写操作自动落库，可按操作人/动作/关键字筛选，保留 180 天
 - **SEO**：每页 title/keywords/description/canonical/OG/Twitter Card、`sitemap.xml`、`robots.txt`、`rss.xml`
 - **统计**：后台概览卡片 + `/admin/stats.json`
+- **操作审计**：登录/发文/改设置/删除等写操作自动落库，支持按人/动作/关键字筛选，可导出 CSV（交接或外部审计用）
 
 ### 前台主题自带
 

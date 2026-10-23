@@ -23,6 +23,9 @@
       <button class="btn btn-ghost" type="submit">搜索</button>
     </form>
 
+    <a class="btn btn-ghost" href="{{.Options.export_url}}"
+       title="按当前筛选条件导出，最多 10000 条">导出 CSV</a>
+
     <form method="post" action="{{$.AdminPath}}/audits/purge"
           data-confirm="确认清理 180 天前的日志？该操作不可恢复。">
       <input type="hidden" name="csrf_token" value="{{.CSRF}}">
