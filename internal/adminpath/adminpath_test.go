@@ -28,21 +28,21 @@ func TestSanitize(t *testing.T) {
 
 	// 全部是线上真实踩过或明确要拦的输入
 	bad := []string{
-		"",           // 空
-		"a",          // 太短，且是保留字
-		"c",          // 保留字（栏目前缀）
-		"p",          // 保留字（单页前缀）
-		"t",          // 保留字（标签前缀）
-		"assets",     // 前台静态目录
-		"uploads",    // 上传目录
-		"search",     // 前台搜索
-		"rss",        // 前台订阅
-		"sitemap",    // 站点地图
-		"healthz",    // 健康检查（本轮新增，必须占用）
-		"with space", // 含空格
-		"有中文",        // 非 ASCII
-		"admin@x",    // 非法字符
-		"-",          // 长度 1
+		"",                      // 空
+		"a",                     // 太短，且是保留字
+		"c",                     // 保留字（栏目前缀）
+		"p",                     // 保留字（单页前缀）
+		"t",                     // 保留字（标签前缀）
+		"assets",                // 前台静态目录
+		"uploads",               // 上传目录
+		"search",                // 前台搜索
+		"rss",                   // 前台订阅
+		"sitemap",               // 站点地图
+		"healthz",               // 健康检查（本轮新增，必须占用）
+		"with space",            // 含空格
+		"有中文",                   // 非 ASCII
+		"admin@x",               // 非法字符
+		"-",                     // 长度 1
 		strings.Repeat("x", 33), // 超长
 	}
 	for _, c := range bad {
@@ -55,10 +55,10 @@ func TestSanitize(t *testing.T) {
 // Validate 的返回值会直接显示给用户，必须说清楚错在哪，不能只给一句「参数错误」。
 func TestValidateMessage(t *testing.T) {
 	cases := map[string]string{
-		"":          "不能为空",
-		"a":         "至少 2 个字符",
-		"assets":    "保留路径",
-		"with sp":   "只能包含",
+		"":                      "不能为空",
+		"a":                     "至少 2 个字符",
+		"assets":                "保留路径",
+		"with sp":               "只能包含",
 		strings.Repeat("y", 40): "最多 32 个字符",
 	}
 	for in, want := range cases {

@@ -80,7 +80,7 @@ gocms/
 │   ├── utils/                   # 分页、时间格式化、Markdown、通用小工具
 │   ├── render/                  # 模板引擎（主题 + 后台，支持热重载）
 │   ├── middleware/               # Recover/Logger/Headers/Gzip/AdminPath/Session/CSRF/限流
-│   ├── handler/                 # 前台 + 后台控制器（audit.go 为操作审计埋点）
+│   ├── handler/                 # 前台 + 后台控制器（audit.go 审计埋点，health.go 健康检查）
 │   ├── router/                  # 路由表（dynamic.go 支持运行时重建）
 │   └── seed/                    # 演示数据种子
 ├── themes/default/              # 前台主题（可复制成新主题）
@@ -210,6 +210,9 @@ make build-linux   # 交叉编译 Linux amd64
 make assets        # 改过后台模板/样式后重编 Tailwind
 make assets-watch  # 监听模板改动自动重编
 make check         # gofmt + go vet
+make test          # 单元测试（仓储集成测试自动跳过）
+make test-db       # 含仓储集成测试，需要 MySQL（测试库会被清空）
+make test-cover    # 覆盖率报告
 make start         # 后台启动（日志 .run/gocms.log）
 make stop          # 停止
 make sign          # macOS 报 "Code Signature Invalid" 时补签名
@@ -221,6 +224,11 @@ make sign          # macOS 报 "Code Signature Invalid" 时补签名
 go run ./cmd/gocms
 go build -o gocms ./cmd/gocms && codesign --force --sign - ./gocms   # macOS 建议签名
 go vet ./...
+go test ./...
+
+# 仓储集成测试（会清空 gocms_test 库，别指向生产库）
+GOCMS_TEST_DSN='root:123456@tcp(127.0.0.1:3306)/gocms_test?parseTime=true&charset=utf8mb4&loc=Local' \
+  go test ./internal/repository/ -v
 
 # 重编后台样式（仅改动 web/admin/templates 或 web/assets/src 后才需要）
 npm install && npx tailwindcss -i ./web/assets/src/input.css -o ./web/admin/static/app.css --minify
@@ -228,6 +236,16 @@ npm install && npx tailwindcss -i ./web/assets/src/input.css -o ./web/admin/stat
 # gofmt 不在 PATH 时用绝对路径
 $(go env GOROOT)/bin/gofmt -l -w ./cmd ./internal
 ```
+
+### 健康检查
+
+```bash
+curl -s http://127.0.0.1:8090/healthz
+# {"status":"ok","db":"ok","uptime_seconds":1284,"db_latency_ms":1}
+```
+
+会真的 Ping 一次数据库，异常返回 `503`。不建会话、不受后台 IP 白名单限制，
+可直接接 Nginx 上游判断或 cron 探活（见 [`docs/03-部署指南.md`](docs/03-部署指南.md) 4.1 节）。
 
 ## 六、部署要点
 
@@ -325,3 +343,5 @@ cp -r themes/default themes/mytheme
 | 语义色板走 CSS 变量 | `surface` / `ink` / `line` 三组变量承载深浅色，模板只写一次类名，不再重复 `dark:` 变体 |
 | 服务端 Session 表 | 可主动踢下线、可查在线状态，比 JWT 更适合后台管理 |
 | 主题目录化 | 换皮不改代码，客户交付时替换 `themes/` 即可 |
+| 静态资源三种缓存策略 | uploads 内容不可变可一年，后台资源改了就生效，一刀切必然有一头出错 |
+| 自建 /healthz 而非只看端口 | 端口在听不代表能干活的，DB 掉线时要让上游摘节点 |
