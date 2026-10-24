@@ -3,7 +3,7 @@
 <div class="card">
   <div class="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-line">
     <span class="text-[13px] text-ink-3">共 {{.Total}} 个单页，用于「关于我们」「联系方式」等固定内容</span>
-    <a class="btn btn-primary ml-auto" href="{{$.AdminPath}}/pages/new">+ 新建单页</a>
+    {{if .User.CanEdit}}<a class="btn btn-primary ml-auto" href="{{$.AdminPath}}/pages/new">+ 新建单页</a>{{end}}
   </div>
 
   {{if .Items}}
@@ -24,11 +24,13 @@
             <div class="flex items-center justify-end gap-3">
               <a class="btn-link" href="/p/{{.Slug}}" target="_blank" rel="noopener">查看</a>
               <a class="btn-link" href="{{$.AdminPath}}/pages/{{.ID}}/edit">编辑</a>
+              {{if $.User.CanEdit}}
               <form method="post" action="{{$.AdminPath}}/pages/{{.ID}}/delete" class="inline"
                     data-confirm="确认删除单页「{{.Title}}」？">
                 <input type="hidden" name="csrf_token" value="{{$.CSRF}}">
                 <button class="btn-link text-red-600 hover:text-red-700 dark:text-red-400" type="submit">删除</button>
               </form>
+              {{end}}
             </div>
           </td>
         </tr>
@@ -40,7 +42,7 @@
   <div class="px-4 py-16 text-center">
     <h3 class="text-sm font-semibold mb-1">还没有单页</h3>
     <p class="text-[13px] text-ink-3 mb-4">单页适合承载「关于我们」「隐私政策」「联系方式」等固定内容。</p>
-    <a class="btn btn-primary btn-sm" href="{{$.AdminPath}}/pages/new">+ 新建单页</a>
+    {{if $.User.CanEdit}}<a class="btn btn-primary btn-sm" href="{{$.AdminPath}}/pages/new">+ 新建单页</a>{{end}}
   </div>
   {{end}}
 </div>

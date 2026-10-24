@@ -14,11 +14,13 @@
             <td class="col-actions">
               <div class="flex items-center justify-end gap-3">
                 <a class="btn-link" href="{{$.AdminPath}}/menus/{{.ID}}">管理菜单项</a>
+                {{if $.User.CanEdit}}
                 <form method="post" action="{{$.AdminPath}}/menus/{{.ID}}/delete" class="inline"
                       data-confirm="确认删除菜单「{{.Name}}」及其全部菜单项？">
                   <input type="hidden" name="csrf_token" value="{{$.CSRF}}">
                   <button class="btn-link text-red-600 hover:text-red-700 dark:text-red-400" type="submit">删除</button>
                 </form>
+                {{end}}
               </div>
             </td>
           </tr>
@@ -32,6 +34,7 @@
     </div>
   </div>
 
+  {{if .User.CanEdit}}
   <form method="post" action="{{$.AdminPath}}/menus/save" class="card">
     <input type="hidden" name="csrf_token" value="{{.CSRF}}">
     <div class="card-head"><h2>新建菜单位置</h2></div>
@@ -48,6 +51,7 @@
       <button class="btn btn-primary btn-block" type="submit">+ 创建菜单</button>
     </div>
   </form>
+  {{end}}
 </div>
 
 {{template "admin_foot" .}}

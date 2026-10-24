@@ -115,8 +115,11 @@ func Logger() Middleware {
 	}
 }
 
-// SecurityHeaders 安全响应头
-func SecurityHeaders() Middleware {
+// SecurityHeaders 安全响应头。
+//
+// hsts 为 true（生产环境）时附加 Strict-Transport-Security，让浏览器后续
+// 只走 HTTPS；纯 HTTP 部署下浏览器会忽略该头，误设无害。
+func SecurityHeaders(hsts bool) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			h := w.Header()
@@ -124,6 +127,11 @@ func SecurityHeaders() Middleware {
 			h.Set("X-Frame-Options", "SAMEORIGIN")
 			h.Set("Referrer-Policy", "strict-origin-when-cross-origin")
 			h.Set("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
+			if hsts {
+				// 不带 includeSubDomains：同一父域下的兄弟子域未必已上 TLS，
+				// 一刀切会把它们也强制跳 HTTPS 反而打挂
+				h.Set("Strict-Transport-Security", "max-age=31536000")
+			}
 			next.ServeHTTP(w, r)
 		})
 	}
@@ -389,7 +397,8 @@ func RequireRole(roles ...string) Middleware {
 			if !allow[u.Role] {
 				w.Header().Set("Content-Type", "text/html; charset=utf-8")
 				w.WriteHeader(http.StatusForbidden)
-				_, _ = w.Write([]byte("<h1>403 权限不足</h1><p>当前账号无权访问该页面。</p>"))
+				_, _ = w.Write([]byte("<h1>403 权限不足</h1><p>当前账号无权执行该操作" +
+					"（只读账号请联系管理员开通写权限）。</p><p><a href=\"javascript:history.back()\">返回</a></p>"))
 				return
 			}
 			next.ServeHTTP(w, r)

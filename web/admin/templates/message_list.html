@@ -45,11 +45,13 @@
           <td class="col-actions">
             <div class="flex items-center justify-end gap-3">
               <a class="btn-link" href="{{$.AdminPath}}/messages?view={{.ID}}">查看</a>
+              {{if $.User.CanEdit}}
               <form method="post" action="{{$.AdminPath}}/messages/{{.ID}}/delete" class="inline"
                     data-confirm="确认删除该留言？">
                 <input type="hidden" name="csrf_token" value="{{$.CSRF}}">
                 <button class="btn-link text-red-600 hover:text-red-700 dark:text-red-400" type="submit">删除</button>
               </form>
+              {{end}}
             </div>
           </td>
         </tr>
@@ -118,6 +120,7 @@
     </div>
     {{end}}
 
+    {{if $.User.CanEdit}}
     <form method="post" action="{{$.AdminPath}}/messages/reply" class="space-y-3">
       <input type="hidden" name="csrf_token" value="{{.CSRF}}">
       <input type="hidden" name="id" value="{{$m.ID}}">
@@ -134,6 +137,7 @@
         {{if $m.Email}}<a class="btn btn-ghost" href="mailto:{{$m.Email}}">发送邮件</a>{{end}}
       </div>
     </form>
+    {{end}}
 
     {{/* 独立表单：避免嵌套 form（HTML 不允许），用 form 属性关联按钮 */}}
     <form method="post" action="{{$.AdminPath}}/messages/status" id="msgReadForm" class="hidden">

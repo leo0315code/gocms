@@ -95,7 +95,7 @@
           <span class="field-hint">留空使用主题默认 category 模板。</span>
         </div>
         <div class="flex items-center gap-2 pt-2 border-t border-line">
-          <button class="btn btn-primary" type="submit">保存栏目</button>
+          {{if $.User.CanEdit}}<button class="btn btn-primary" type="submit">保存栏目</button>{{end}}
           <a class="btn btn-ghost" href="{{$.AdminPath}}/categories">返回</a>
         </div>
       </div>
@@ -118,11 +118,13 @@
               <div class="text-[13px] font-medium truncate">{{.Label}}</div>
               <div class="text-[11px] text-ink-3">{{.Name}} · {{.Type}}{{if .Required}} · 必填{{end}}</div>
             </div>
+            {{if $.User.CanEdit}}
             <form method="post" action="{{$.AdminPath}}/fields/{{.ID}}/delete?cat={{$cat.ID}}"
                   data-confirm="确认删除该字段及其数据？">
               <input type="hidden" name="csrf_token" value="{{$.CSRF}}">
               <button class="btn-link text-red-600 hover:text-red-700 dark:text-red-400" type="submit">删除</button>
             </form>
+            {{end}}
           </div>
           {{end}}
         </div>
@@ -132,6 +134,7 @@
       </div>
     </div>
 
+    {{if $.User.CanEdit}}
     <form method="post" action="{{$.AdminPath}}/fields/save" class="card">
       <input type="hidden" name="csrf_token" value="{{.CSRF}}">
       <input type="hidden" name="category_id" value="{{$cat.ID}}">
@@ -177,6 +180,7 @@
         <button class="btn btn-primary btn-block" type="submit">+ 添加字段</button>
       </div>
     </form>
+    {{end}}
     {{else}}
     <div class="card">
       <div class="p-4">

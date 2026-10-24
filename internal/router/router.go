@@ -47,9 +47,15 @@ func Build(cfg *config.Config, repo *repository.Repo, h *handler.Handler, ap *ad
 
 	adminGuard := middleware.RequireAdmin()
 	adminOnly := middleware.RequireRole("admin")
+	// 内容写操作再高一档：viewer 是只读角色，能看列表和表单，但所有
+	// POST 必须挡在路由层——菜单隐藏只是视觉效果，接口不设防就是越权
+	contentWrite := middleware.RequireRole("admin", "editor")
 	auth := func(fn http.HandlerFunc) http.Handler { return adminGuard(fn) }
 	authAdmin := func(fn http.HandlerFunc) http.Handler {
 		return adminGuard(adminOnly(fn))
+	}
+	authWrite := func(fn http.HandlerFunc) http.Handler {
+		return adminGuard(contentWrite(fn))
 	}
 
 	// 概览
@@ -59,64 +65,64 @@ func Build(cfg *config.Config, repo *repository.Repo, h *handler.Handler, ap *ad
 	// 文章
 	mux.Handle("GET "+base+"/posts", auth(h.PostList))
 	mux.Handle("GET "+base+"/posts/new", auth(h.PostNew))
-	mux.Handle("POST "+base+"/posts/save", auth(h.PostSave))
-	mux.Handle("POST "+base+"/posts/bulk", auth(h.PostBulk))
+	mux.Handle("POST "+base+"/posts/save", authWrite(h.PostSave))
+	mux.Handle("POST "+base+"/posts/bulk", authWrite(h.PostBulk))
 	mux.Handle("GET "+base+"/posts/{id}/edit", auth(h.PostEdit))
-	mux.Handle("POST "+base+"/posts/{id}/delete", auth(h.PostDelete))
+	mux.Handle("POST "+base+"/posts/{id}/delete", authWrite(h.PostDelete))
 
 	// 单页
 	mux.Handle("GET "+base+"/pages", auth(h.PageList))
 	mux.Handle("GET "+base+"/pages/new", auth(h.PageNew))
-	mux.Handle("POST "+base+"/pages/save", auth(h.PageSave))
+	mux.Handle("POST "+base+"/pages/save", authWrite(h.PageSave))
 	mux.Handle("GET "+base+"/pages/{id}/edit", auth(h.PageEdit))
-	mux.Handle("POST "+base+"/pages/{id}/delete", auth(h.PageDelete))
+	mux.Handle("POST "+base+"/pages/{id}/delete", authWrite(h.PageDelete))
 
 	// 栏目
 	mux.Handle("GET "+base+"/categories", auth(h.CategoryList))
 	mux.Handle("GET "+base+"/categories/new", auth(h.CategoryNew))
-	mux.Handle("POST "+base+"/categories/save", auth(h.CategorySave))
+	mux.Handle("POST "+base+"/categories/save", authWrite(h.CategorySave))
 	mux.Handle("GET "+base+"/categories/{id}/edit", auth(h.CategoryEdit))
-	mux.Handle("POST "+base+"/categories/{id}/delete", auth(h.CategoryDelete))
+	mux.Handle("POST "+base+"/categories/{id}/delete", authWrite(h.CategoryDelete))
 
 	// 自定义字段
-	mux.Handle("POST "+base+"/fields/save", auth(h.FieldSave))
-	mux.Handle("POST "+base+"/fields/{id}/delete", auth(h.FieldDelete))
+	mux.Handle("POST "+base+"/fields/save", authWrite(h.FieldSave))
+	mux.Handle("POST "+base+"/fields/{id}/delete", authWrite(h.FieldDelete))
 
 	// 标签
 	mux.Handle("GET "+base+"/tags", auth(h.TagList))
-	mux.Handle("POST "+base+"/tags/save", auth(h.TagSave))
-	mux.Handle("POST "+base+"/tags/{id}/delete", auth(h.TagDelete))
+	mux.Handle("POST "+base+"/tags/save", authWrite(h.TagSave))
+	mux.Handle("POST "+base+"/tags/{id}/delete", authWrite(h.TagDelete))
 
 	// 媒体
 	mux.Handle("GET "+base+"/media", auth(h.MediaList))
-	mux.Handle("POST "+base+"/media/upload", auth(h.MediaUpload))
-	mux.Handle("POST "+base+"/media/{id}/delete", auth(h.MediaDelete))
+	mux.Handle("POST "+base+"/media/upload", authWrite(h.MediaUpload))
+	mux.Handle("POST "+base+"/media/{id}/delete", authWrite(h.MediaDelete))
 	mux.Handle("GET "+base+"/media/picker.json", auth(h.MediaPickerJSON))
-	mux.Handle("POST "+base+"/upload.json", auth(h.UploadJSON))
+	mux.Handle("POST "+base+"/upload.json", authWrite(h.UploadJSON))
 
 	// 菜单
 	mux.Handle("GET "+base+"/menus", auth(h.MenuList))
-	mux.Handle("POST "+base+"/menus/save", auth(h.MenuSave))
+	mux.Handle("POST "+base+"/menus/save", authWrite(h.MenuSave))
 	mux.Handle("GET "+base+"/menus/{id}", auth(h.MenuDetail))
-	mux.Handle("POST "+base+"/menus/{id}/delete", auth(h.MenuDelete))
-	mux.Handle("POST "+base+"/menu-items/save", auth(h.MenuItemSave))
-	mux.Handle("POST "+base+"/menu-items/{id}/delete", auth(h.MenuItemDelete))
+	mux.Handle("POST "+base+"/menus/{id}/delete", authWrite(h.MenuDelete))
+	mux.Handle("POST "+base+"/menu-items/save", authWrite(h.MenuItemSave))
+	mux.Handle("POST "+base+"/menu-items/{id}/delete", authWrite(h.MenuItemDelete))
 
 	// 轮播
 	mux.Handle("GET "+base+"/banners", auth(h.BannerList))
-	mux.Handle("POST "+base+"/banners/save", auth(h.BannerSave))
-	mux.Handle("POST "+base+"/banners/{id}/delete", auth(h.BannerDelete))
+	mux.Handle("POST "+base+"/banners/save", authWrite(h.BannerSave))
+	mux.Handle("POST "+base+"/banners/{id}/delete", authWrite(h.BannerDelete))
 
 	// 友链
 	mux.Handle("GET "+base+"/links", auth(h.LinkList))
-	mux.Handle("POST "+base+"/links/save", auth(h.LinkSave))
-	mux.Handle("POST "+base+"/links/{id}/delete", auth(h.LinkDelete))
+	mux.Handle("POST "+base+"/links/save", authWrite(h.LinkSave))
+	mux.Handle("POST "+base+"/links/{id}/delete", authWrite(h.LinkDelete))
 
 	// 留言
 	mux.Handle("GET "+base+"/messages", auth(h.MessageList))
-	mux.Handle("POST "+base+"/messages/reply", auth(h.MessageReply))
-	mux.Handle("POST "+base+"/messages/status", auth(h.MessageStatus))
-	mux.Handle("POST "+base+"/messages/{id}/delete", auth(h.MessageDelete))
+	mux.Handle("POST "+base+"/messages/reply", authWrite(h.MessageReply))
+	mux.Handle("POST "+base+"/messages/status", authWrite(h.MessageStatus))
+	mux.Handle("POST "+base+"/messages/{id}/delete", authWrite(h.MessageDelete))
 
 	// 个人资料
 	mux.Handle("GET "+base+"/profile", auth(h.Profile))
@@ -142,8 +148,15 @@ func Build(cfg *config.Config, repo *repository.Repo, h *handler.Handler, ap *ad
 	// ================= 静态资源 =================
 	mux.Handle("GET /assets/", http.StripPrefix("/assets/",
 		noDirList(http.FileServer(http.Dir(filepath.Join(themeRoot, "assets"))))))
-	mux.Handle("GET /uploads/", http.StripPrefix("/uploads/",
-		noDirList(http.FileServer(http.Dir(uploadDir)))))
+	// uploads 直出的文件内容不可信：SVG 可内嵌脚本，直接导航到该 URL 时
+	// 脚本会在站点同源执行（目标正是管理员会话）。文档级 CSP 掐灭一切
+	// 脚本与外联；作为 <img>/<video> 等资源被引用时不受此头影响。
+	uploadsFS := http.StripPrefix("/uploads/",
+		noDirList(http.FileServer(http.Dir(uploadDir))))
+	mux.Handle("GET /uploads/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Security-Policy", "default-src 'none'")
+		uploadsFS.ServeHTTP(w, r)
+	}))
 
 	// 后台静态资源跟随前缀，这样后台路径不可猜测时，静态资源也不会暴露
 	adminStatic := "/" + ap.Path() + "/assets/"
@@ -179,7 +192,7 @@ func Build(cfg *config.Config, repo *repository.Repo, h *handler.Handler, ap *ad
 	return middleware.Chain(stripHTMLExt(mux),
 		middleware.Recover(cfg.IsDev),
 		middleware.Logger(),
-		middleware.SecurityHeaders(),
+		middleware.SecurityHeaders(cfg.SessionSecure),
 		// 静态资源缓存策略要在 Gzip 之前设头，避免被压缩路径覆盖
 		middleware.StaticCache(ap),
 		middleware.Gzip(),

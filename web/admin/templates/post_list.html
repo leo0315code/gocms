@@ -28,7 +28,7 @@
       <button class="btn btn-ghost" type="submit">搜索</button>
     </form>
 
-    <a class="btn btn-primary" href="{{$.AdminPath}}/posts/new">+ 写文章</a>
+    {{if .User.CanEdit}}<a class="btn btn-primary" href="{{$.AdminPath}}/posts/new">+ 写文章</a>{{end}}
   </div>
 
   {{if .Items}}
@@ -36,7 +36,8 @@
         x-data="{sel:0, all:false}">
     <input type="hidden" name="csrf_token" value="{{.CSRF}}">
 
-    {{/* 批量操作条：有勾选才出现 */}}
+    {{/* 批量操作条：有勾选才出现（只读角色不渲染） */}}
+    {{if .User.CanEdit}}
     <div x-show="sel > 0" x-transition.opacity
          class="flex items-center gap-2.5 px-4 py-2.5 border-b border-line bg-brand-50 dark:bg-brand-500/10">
       <span class="text-[13px]">已选 <b x-text="sel">0</b> 项</span>
@@ -45,15 +46,16 @@
       <button class="btn btn-sm btn-danger" name="action" value="delete" type="submit"
               onclick="return confirm('确认删除选中的文章？该操作不可恢复。')">删除</button>
     </div>
+    {{end}}
 
     <div class="table-wrap">
       <table class="data">
         <thead>
           <tr>
-            <th class="w-[38px]">
+            {{if $.User.CanEdit}}<th class="w-[38px]">
               <input type="checkbox" class="checkbox" x-model="all"
                      @change="document.querySelectorAll('input[name=ids]').forEach(cb => { cb.checked = all; }); sel = all ? {{len .Items}} : 0">
-            </th>
+            </th>{{end}}
             <th>标题</th>
             <th class="w-[120px]">栏目</th>
             <th class="w-[90px]">状态</th>
@@ -65,10 +67,10 @@
         <tbody>
           {{range .Items}}
           <tr>
-            <td>
+            {{if $.User.CanEdit}}<td>
               <input type="checkbox" name="ids" value="{{.ID}}" class="checkbox"
                      @change="sel = document.querySelectorAll('input[name=ids]:checked').length">
-            </td>
+            </td>{{end}}
             <td>
               <a class="title-cell" href="{{$.AdminPath}}/posts/{{.ID}}/edit">{{.Title}}</a>
               {{if .IsTop}}<span class="badge badge-orange ml-1.5">置顶</span>{{end}}
@@ -99,7 +101,7 @@
   <div class="px-4 py-16 text-center">
     <h3 class="text-sm font-semibold mb-1">暂无文章</h3>
     <p class="text-[13px] text-ink-3 mb-4">换个筛选条件，或创建新文章。</p>
-    <a class="btn btn-primary btn-sm" href="{{$.AdminPath}}/posts/new">+ 写文章</a>
+    {{if $.User.CanEdit}}<a class="btn btn-primary btn-sm" href="{{$.AdminPath}}/posts/new">+ 写文章</a>{{end}}
   </div>
   {{end}}
 

@@ -165,8 +165,10 @@
           </label>
         </div>
         <div class="space-y-2 pt-2 border-t border-line">
+          {{if $.User.CanEdit}}
           <button class="btn btn-primary btn-block" type="submit">保存文章</button>
           <button class="btn btn-ghost btn-block" type="submit" name="continue" value="1">保存并继续编辑</button>
+          {{end}}
           <a class="btn btn-ghost btn-block" href="{{$.AdminPath}}/posts">返回列表</a>
         </div>
       </div>

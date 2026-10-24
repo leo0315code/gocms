@@ -23,6 +23,7 @@
             <td class="tabular-nums">{{.Sort}}</td>
             <td>{{if bool .IsShow}}<span class="badge badge-green">显示</span>{{else}}<span class="badge badge-gray">隐藏</span>{{end}}</td>
             <td class="col-actions">
+              {{if $.User.CanEdit}}
               <div class="flex items-center justify-end gap-3">
                 <a class="btn-link" href="{{$.AdminPath}}/banners?edit={{.ID}}">编辑</a>
                 <form method="post" action="{{$.AdminPath}}/banners/{{.ID}}/delete" class="inline"
@@ -31,6 +32,7 @@
                   <button class="btn-link text-red-600 hover:text-red-700 dark:text-red-400" type="submit">删除</button>
                 </form>
               </div>
+              {{end}}
             </td>
           </tr>
           {{end}}
@@ -45,6 +47,7 @@
     {{end}}
   </div>
 
+  {{if .User.CanEdit}}
   <form method="post" action="{{$.AdminPath}}/banners/save" class="card">
     <input type="hidden" name="csrf_token" value="{{.CSRF}}">
     <div class="card-head"><h2>{{if .Item}}编辑轮播{{else}}添加轮播{{end}}</h2></div>
@@ -103,6 +106,7 @@
       </div>
     </div>
   </form>
+  {{end}}
 </div>
 
 {{template "admin_foot" .}}

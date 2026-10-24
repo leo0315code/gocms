@@ -33,7 +33,7 @@
   <div class="card">
     <div class="card-head">
       <h2>最近文章</h2>
-      <a class="btn btn-ghost btn-sm" href="{{$.AdminPath}}/posts/new">+ 写文章</a>
+      {{if $.User.CanEdit}}<a class="btn btn-ghost btn-sm" href="{{$.AdminPath}}/posts/new">+ 写文章</a>{{end}}
     </div>
     {{if .Items}}
     <div class="table-wrap">
@@ -64,7 +64,7 @@
     <div class="px-4 py-12 text-center">
       <h3 class="text-sm font-semibold mb-1">还没有文章</h3>
       <p class="text-[13px] text-ink-3 mb-4">发布第一篇文章，让站点有内容可看。</p>
-      <a class="btn btn-primary btn-sm" href="{{$.AdminPath}}/posts/new">写第一篇文章</a>
+      {{if $.User.CanEdit}}<a class="btn btn-primary btn-sm" href="{{$.AdminPath}}/posts/new">写第一篇文章</a>{{end}}
     </div>
     {{end}}
   </div>
@@ -100,12 +100,15 @@
 <div class="card mt-4">
   <div class="card-head"><h2>快捷操作</h2></div>
   <div class="px-4 py-3 flex flex-wrap gap-2">
+    {{if $.User.CanEdit}}
     <a class="btn btn-primary" href="{{$.AdminPath}}/posts/new">+ 新建文章</a>
     <a class="btn btn-ghost" href="{{$.AdminPath}}/categories/new">+ 新建栏目</a>
     <a class="btn btn-ghost" href="{{$.AdminPath}}/pages/new">+ 新建单页</a>
     <a class="btn btn-ghost" href="{{$.AdminPath}}/media">上传图片</a>
     <a class="btn btn-ghost" href="{{$.AdminPath}}/menus">配置导航</a>
-    <a class="btn btn-ghost" href="{{$.AdminPath}}/settings">系统设置</a>
+    {{end}}
+    <a class="btn btn-ghost" href="{{$.AdminPath}}/messages">查看留言</a>
+    {{if $.User.IsAdmin}}<a class="btn btn-ghost" href="{{$.AdminPath}}/settings">系统设置</a>{{end}}
   </div>
 </div>
 

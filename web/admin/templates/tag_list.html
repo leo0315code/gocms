@@ -19,11 +19,13 @@
             <td class="col-actions">
               <div class="flex items-center justify-end gap-3">
                 <a class="btn-link" href="/t/{{.Slug}}" target="_blank" rel="noopener">查看</a>
+                {{if $.User.CanEdit}}
                 <form method="post" action="{{$.AdminPath}}/tags/{{.ID}}/delete" class="inline"
                       data-confirm="确认删除标签「{{.Name}}」？">
                   <input type="hidden" name="csrf_token" value="{{$.CSRF}}">
                   <button class="btn-link text-red-600 hover:text-red-700 dark:text-red-400" type="submit">删除</button>
                 </form>
+                {{end}}
               </div>
             </td>
           </tr>
@@ -39,6 +41,7 @@
     {{end}}
   </div>
 
+  {{if .User.CanEdit}}
   <form method="post" action="{{$.AdminPath}}/tags/save" class="card">
     <input type="hidden" name="csrf_token" value="{{.CSRF}}">
     <div class="card-head"><h2>新建标签</h2></div>
@@ -54,6 +57,7 @@
       <button class="btn btn-primary btn-block" type="submit">+ 创建标签</button>
     </div>
   </form>
+  {{end}}
 </div>
 
 {{template "admin_foot" .}}
