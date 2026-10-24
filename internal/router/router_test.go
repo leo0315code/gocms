@@ -226,7 +226,6 @@ func TestUploadsCSPHeader(t *testing.T) {
 	}
 }
 
-// HSTS 只在 SessionSecure（生产 HTTPS）时下发。
 // viewer 冒烟：遍历全部内容页面，确保只读分支（写控件隐藏后）都能正常渲染，
 // 不因模板条件改错而 500。
 func TestViewerPagesRender(t *testing.T) {
@@ -267,6 +266,70 @@ func TestViewerPagesRender(t *testing.T) {
 	}
 }
 
+// 在线会话管理仅 admin：页面可见、踢下线生效；editor/viewer 全被 403。
+func TestSessionsAdminOnly(t *testing.T) {
+	env := newRouterEnv(t, false)
+
+	admin := mustAdminRouter(t, env.repo)
+	editor := mustUser(t, env.repo, "writer", "editor")
+	viewer := mustUser(t, env.repo, "watcher", "viewer")
+
+	as, aCookie := loginSession(t, env.repo, admin, env.cfg.SessionName)
+	_, eCookie := loginSession(t, env.repo, editor, env.cfg.SessionName)
+	_, vCookie := loginSession(t, env.repo, viewer, env.cfg.SessionName)
+
+	if rec := do(t, env.rt, "GET", "/admin/sessions", aCookie, ""); rec.Code != http.StatusOK {
+		t.Fatalf("admin GET /sessions = %d，期望 200", rec.Code)
+	}
+	if rec := do(t, env.rt, "GET", "/admin/sessions", eCookie, ""); rec.Code != http.StatusForbidden {
+		t.Errorf("editor GET /sessions = %d，期望 403", rec.Code)
+	}
+	if rec := do(t, env.rt, "GET", "/admin/sessions", vCookie, ""); rec.Code != http.StatusForbidden {
+		t.Errorf("viewer GET /sessions = %d，期望 403", rec.Code)
+	}
+
+	// admin 踢掉 editor 的会话：库里消失，该 Cookie 立即失效
+	list, err := env.repo.Sess.ListActive()
+	if err != nil {
+		t.Fatalf("ListActive 失败: %v", err)
+	}
+	var editorSessionID uint64
+	for _, s := range list {
+		if s.UserID == editor.ID {
+			editorSessionID = s.ID
+		}
+	}
+	if editorSessionID == 0 {
+		t.Fatal("editor 会话不在在线列表中")
+	}
+	kickForm := url.Values{"csrf_token": {as.CSRFToken}}
+	rec := do(t, env.rt, "POST", "/admin/sessions/"+strconv.FormatUint(editorSessionID, 10)+"/kick", aCookie, kickForm.Encode())
+	if rec.Code != http.StatusSeeOther {
+		t.Fatalf("kick = %d，期望 303", rec.Code)
+	}
+	if _, err := env.repo.Sess.ByToken(strings.TrimPrefix(eCookie, env.cfg.SessionName+"=")); err == nil {
+		t.Error("被踢会话仍可用 token 登录")
+	}
+
+	// editor 携带合法 CSRF 也不能踢人（admin-only 在角色层拦截）
+	es2, eCookie2 := loginSession(t, env.repo, editor, env.cfg.SessionName)
+	other, _ := loginSession(t, env.repo, mustUser(t, env.repo, "writer2", "editor"), env.cfg.SessionName)
+	kickForm = url.Values{"csrf_token": {es2.CSRFToken}}
+	if rec := do(t, env.rt, "POST", "/admin/sessions/"+strconv.FormatUint(other.ID, 10)+"/kick", eCookie2, kickForm.Encode()); rec.Code != http.StatusForbidden {
+		t.Errorf("editor kick = %d，期望 403", rec.Code)
+	}
+}
+
+func mustAdminRouter(t *testing.T, repo *repository.Repo) *model.User {
+	t.Helper()
+	u, err := repo.User.ByUsername("admin")
+	if err != nil {
+		t.Fatalf("查询管理员失败: %v", err)
+	}
+	return u
+}
+
+// HSTS 只在 SessionSecure（生产 HTTPS）时下发。
 func TestHSTSHeader(t *testing.T) {
 	env := newRouterEnv(t, true)
 	rec := do(t, env.rt, "GET", "/healthz", "", "")

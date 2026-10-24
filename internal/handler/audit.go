@@ -14,9 +14,10 @@ import (
 // 审计动作标识。
 // 命名规则：<对象>.<动词>，便于按前缀筛选（如 post. 开头的都是文章相关）。
 const (
-	AuditLoginOK   = "auth.login"
-	AuditLoginFail = "auth.login_fail"
-	AuditLogout    = "auth.logout"
+	AuditLoginOK     = "auth.login"
+	AuditLoginFail   = "auth.login_fail"
+	AuditLogout      = "auth.logout"
+	AuditSessionKick = "session.kick"
 
 	AuditSettingsSave = "settings.save"
 	AuditAdminPath    = "settings.admin_path"

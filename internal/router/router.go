@@ -145,6 +145,11 @@ func Build(cfg *config.Config, repo *repository.Repo, h *handler.Handler, ap *ad
 	mux.Handle("GET "+base+"/audits/export.csv", authAdmin(h.AuditExportCSV))
 	mux.Handle("POST "+base+"/audits/purge", authAdmin(h.AuditPurge))
 
+	// 在线会话（仅 admin）：踢下线立即生效，用于账号泄露/离职回收
+	mux.Handle("GET "+base+"/sessions", authAdmin(h.SessionsPage))
+	mux.Handle("POST "+base+"/sessions/{id}/kick", authAdmin(h.SessionKick))
+	mux.Handle("POST "+base+"/sessions/kick-user", authAdmin(h.SessionKickUser))
+
 	// ================= 静态资源 =================
 	mux.Handle("GET /assets/", http.StripPrefix("/assets/",
 		noDirList(http.FileServer(http.Dir(filepath.Join(themeRoot, "assets"))))))

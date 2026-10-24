@@ -1,0 +1,73 @@
+{{template "admin_head" .}}
+
+<div class="card">
+  <div class="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-line">
+    <span class="text-[13px] text-ink-3">共 {{.Total}} 个在线会话。踢下线立即生效，被踢用户需重新登录。</span>
+
+    {{if .Options.users}}
+    <form method="post" action="{{$.AdminPath}}/sessions/kick-user" class="flex items-center gap-2 ml-auto"
+          data-confirm="确认踢掉该用户的全部会话？其所有设备都需要重新登录。">
+      <input type="hidden" name="csrf_token" value="{{.CSRF}}">
+      <select name="user_id" class="input !w-[200px]" required>
+        <option value="">按用户全部踢下线…</option>
+        {{range .Options.users}}
+        <option value="{{.id}}">{{.label}}</option>
+        {{end}}
+      </select>
+      <button class="btn btn-ghost" type="submit">全部踢下线</button>
+    </form>
+    {{end}}
+  </div>
+
+  {{if .Items}}
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr>
+          <th class="w-[140px]">用户</th>
+          <th class="w-[90px]">角色</th>
+          <th class="w-[150px]">登录时间</th>
+          <th class="w-[150px]">过期时间</th>
+          <th class="w-[130px]">IP</th>
+          <th>设备</th>
+          <th class="w-[90px]"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {{range .Items}}
+        <tr>
+          <td>
+            <span class="text-[13px] font-medium">{{if .Nickname}}{{.Nickname}}{{else}}{{.Username}}{{end}}</span>
+            {{if .Nickname}}<div class="cell-sub">{{.Username}}</div>{{end}}
+          </td>
+          <td>
+            {{if eq .Role "admin"}}<span class="badge badge-red">管理员</span>
+            {{else if eq .Role "editor"}}<span class="badge badge-blue">编辑</span>
+            {{else}}<span class="badge badge-gray">只读</span>{{end}}
+            {{if eq .UserID $.User.ID}}<span class="badge badge-green">当前会话</span>{{end}}
+          </td>
+          <td class="cell-sub whitespace-nowrap">{{datetime .CreatedAt}}</td>
+          <td class="cell-sub whitespace-nowrap">{{datetime .ExpiresAt}}</td>
+          <td class="cell-sub">{{.IP}}</td>
+          <td class="cell-sub max-w-[280px] truncate" title="{{.UserAgent}}">{{default "未知设备" .UserAgent}}</td>
+          <td class="col-actions">
+            <form method="post" action="{{$.AdminPath}}/sessions/{{.ID}}/kick" class="inline"
+                  data-confirm="确认踢下线该会话？该设备将需要重新登录。">
+              <input type="hidden" name="csrf_token" value="{{$.CSRF}}">
+              <button class="btn-link text-red-600 hover:text-red-700 dark:text-red-400" type="submit">踢下线</button>
+            </form>
+          </td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+  {{else}}
+  <div class="px-4 py-16 text-center">
+    <h3 class="text-sm font-semibold mb-1">当前没有在线会话</h3>
+    <p class="text-[13px] text-ink-3">有用户登录后台后会出现在这里。</p>
+  </div>
+  {{end}}
+</div>
+
+{{template "admin_foot" .}}
