@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/example/gocms/internal/middleware"
-	"github.com/example/gocms/internal/model"
-	"github.com/example/gocms/internal/utils"
+	"github.com/leo0315code/gocms/internal/middleware"
+	"github.com/leo0315code/gocms/internal/model"
+	"github.com/leo0315code/gocms/internal/utils"
 )
 
 // 审计动作标识。

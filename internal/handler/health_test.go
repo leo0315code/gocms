@@ -11,7 +11,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 
-	"github.com/example/gocms/internal/repository"
+	"github.com/leo0315code/gocms/internal/repository"
 )
 
 // /healthz 的价值全在「数据库挂了要返回 503」。

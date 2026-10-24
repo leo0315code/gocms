@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"github.com/example/gocms/internal/model"
+	"github.com/leo0315code/gocms/internal/model"
 )
 
 // PostRepo 文章仓储

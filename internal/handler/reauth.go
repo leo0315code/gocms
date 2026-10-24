@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/example/gocms/internal/adminpath"
-	"github.com/example/gocms/internal/middleware"
-	"github.com/example/gocms/internal/security"
-	"github.com/example/gocms/internal/utils"
+	"github.com/leo0315code/gocms/internal/adminpath"
+	"github.com/leo0315code/gocms/internal/middleware"
+	"github.com/leo0315code/gocms/internal/security"
+	"github.com/leo0315code/gocms/internal/utils"
 )
 
 // 二次验证：修改高危安全项时必须重新输入当前密码。

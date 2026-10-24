@@ -5,10 +5,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/example/gocms/internal/model"
-	"github.com/example/gocms/internal/repository"
-	"github.com/example/gocms/internal/security"
-	"github.com/example/gocms/internal/utils"
+	"github.com/leo0315code/gocms/internal/model"
+	"github.com/leo0315code/gocms/internal/repository"
+	"github.com/leo0315code/gocms/internal/security"
+	"github.com/leo0315code/gocms/internal/utils"
 )
 
 // ---------- 分类 ----------

@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"github.com/example/gocms/internal/model"
+	"github.com/leo0315code/gocms/internal/model"
 )
 
 // SettingRepo 设置仓储

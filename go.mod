@@ -1,4 +1,4 @@
-module github.com/example/gocms
+module github.com/leo0315code/gocms
 
 go 1.22
 

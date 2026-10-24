@@ -5,7 +5,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/example/gocms/internal/model"
+	"github.com/leo0315code/gocms/internal/model"
 )
 
 // LinkRepo 友情链接仓储

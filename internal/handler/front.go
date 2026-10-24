@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/example/gocms/internal/model"
-	"github.com/example/gocms/internal/repository"
-	"github.com/example/gocms/internal/utils"
+	"github.com/leo0315code/gocms/internal/model"
+	"github.com/leo0315code/gocms/internal/repository"
+	"github.com/leo0315code/gocms/internal/utils"
 )
 
 // Home 首页

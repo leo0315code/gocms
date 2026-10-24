@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/example/gocms/internal/middleware"
-	"github.com/example/gocms/internal/model"
-	"github.com/example/gocms/internal/repository"
-	"github.com/example/gocms/internal/security"
-	"github.com/example/gocms/internal/utils"
+	"github.com/leo0315code/gocms/internal/middleware"
+	"github.com/leo0315code/gocms/internal/model"
+	"github.com/leo0315code/gocms/internal/repository"
+	"github.com/leo0315code/gocms/internal/security"
+	"github.com/leo0315code/gocms/internal/utils"
 )
 
 // AdminData 后台页面公共数据

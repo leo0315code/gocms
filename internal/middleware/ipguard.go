@@ -7,9 +7,9 @@ import (
 	"strings"
 	"sync/atomic"
 
-	"github.com/example/gocms/internal/adminpath"
-	"github.com/example/gocms/internal/security"
-	"github.com/example/gocms/internal/utils"
+	"github.com/leo0315code/gocms/internal/adminpath"
+	"github.com/leo0315code/gocms/internal/security"
+	"github.com/leo0315code/gocms/internal/utils"
 )
 
 // IPGuard 后台 IP 白名单守卫。

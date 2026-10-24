@@ -17,15 +17,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/example/gocms/internal/adminpath"
-	"github.com/example/gocms/internal/config"
-	"github.com/example/gocms/internal/middleware"
-	"github.com/example/gocms/internal/model"
-	"github.com/example/gocms/internal/render"
-	"github.com/example/gocms/internal/repository"
-	"github.com/example/gocms/internal/security"
-	"github.com/example/gocms/internal/utils"
-	"github.com/example/gocms/internal/viewcount"
+	"github.com/leo0315code/gocms/internal/adminpath"
+	"github.com/leo0315code/gocms/internal/config"
+	"github.com/leo0315code/gocms/internal/middleware"
+	"github.com/leo0315code/gocms/internal/model"
+	"github.com/leo0315code/gocms/internal/render"
+	"github.com/leo0315code/gocms/internal/repository"
+	"github.com/leo0315code/gocms/internal/security"
+	"github.com/leo0315code/gocms/internal/utils"
+	"github.com/leo0315code/gocms/internal/viewcount"
 )
 
 // Handler 控制器集合

@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/example/gocms/internal/adminpath"
-	"github.com/example/gocms/internal/config"
-	"github.com/example/gocms/internal/handler"
-	"github.com/example/gocms/internal/middleware"
-	"github.com/example/gocms/internal/repository"
+	"github.com/leo0315code/gocms/internal/adminpath"
+	"github.com/leo0315code/gocms/internal/config"
+	"github.com/leo0315code/gocms/internal/handler"
+	"github.com/leo0315code/gocms/internal/middleware"
+	"github.com/leo0315code/gocms/internal/repository"
 )
 
 // Build 构建完整路由（供首次装配与后台改路径后重建使用）。

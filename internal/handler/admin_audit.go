@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/example/gocms/internal/repository"
-	"github.com/example/gocms/internal/utils"
+	"github.com/leo0315code/gocms/internal/repository"
+	"github.com/leo0315code/gocms/internal/utils"
 )
 
 // AuditList 操作日志列表

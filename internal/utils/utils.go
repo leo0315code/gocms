@@ -14,7 +14,7 @@ import (
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/renderer/html"
 
-	"github.com/example/gocms/internal/security"
+	"github.com/leo0315code/gocms/internal/security"
 )
 
 // ---------- 分页 ----------

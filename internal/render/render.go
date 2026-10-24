@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/example/gocms/internal/utils"
+	"github.com/leo0315code/gocms/internal/utils"
 )
 
 // Engine 模板引擎，主题可热切换

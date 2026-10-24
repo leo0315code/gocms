@@ -12,10 +12,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/example/gocms/internal/adminpath"
-	"github.com/example/gocms/internal/model"
-	"github.com/example/gocms/internal/security"
-	"github.com/example/gocms/internal/utils"
+	"github.com/leo0315code/gocms/internal/adminpath"
+	"github.com/leo0315code/gocms/internal/model"
+	"github.com/leo0315code/gocms/internal/security"
+	"github.com/leo0315code/gocms/internal/utils"
 )
 
 // ---------- 留言 ----------

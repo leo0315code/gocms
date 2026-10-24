@@ -5,7 +5,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/example/gocms/internal/model"
+	"github.com/leo0315code/gocms/internal/model"
 )
 
 // AuditRepo 操作审计仓储

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/example/gocms/internal/adminpath"
+	"github.com/leo0315code/gocms/internal/adminpath"
 )
 
 // 静态资源缓存策略：三类资源三种策略，写错会导致「改完样式不生效」或「白白回源」。

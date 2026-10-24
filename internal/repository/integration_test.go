@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/example/gocms/internal/database"
-	"github.com/example/gocms/internal/model"
+	"github.com/leo0315code/gocms/internal/database"
+	"github.com/leo0315code/gocms/internal/model"
 )
 
 // 仓储层集成测试：需要真实 MySQL，因为迁移 SQL 是 MySQL 方言（FULLTEXT、ON DUPLICATE KEY）。
