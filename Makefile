@@ -11,7 +11,7 @@ UNAME    := $(shell uname -s)
 # 集成测试需要 MySQL：仓储测试清空该库；后台写路径测试自动派生 <库>_writeflow 库
 TEST_DSN ?= root:123456@tcp(127.0.0.1:3306)/gocms_test?parseTime=true&charset=utf8mb4&loc=Local
 
-.PHONY: help run build build-linux assets assets-watch fmt vet tidy clean start stop restart logs check sign test test-db test-cover
+.PHONY: help run build build-linux assets assets-watch fmt vet tidy clean start stop restart logs check sign test test-db test-cover backup restore
 
 help: ## 显示所有可用命令
 	@echo "GoCMS 常用命令："
@@ -62,6 +62,13 @@ test-cover: ## 生成覆盖率报告
 	go test ./internal/... -count=1 -coverprofile=coverage.out
 	@go tool cover -func=coverage.out | tail -1
 	@echo "  明细：go tool cover -html=coverage.out -o coverage.html"
+
+backup: ## 备份数据库与 uploads 到 backups/（凭据读 .env）
+	bash scripts/backup.sh
+
+restore: ## 恢复备份（会覆盖！）：make restore F=backups/gocms-<时间戳>.tar.gz
+	@test -n "$(F)" || { echo "用法: make restore F=backups/gocms-<时间戳>.tar.gz"; exit 1; }
+	bash scripts/restore.sh $(F)
 
 clean: ## 清理编译产物
 	rm -f $(APP) $(APP)-linux-amd64

@@ -134,6 +134,8 @@ gocms/
 - **SEO**：每页 title/keywords/description/canonical/OG/Twitter Card、`sitemap.xml`、`robots.txt`、`rss.xml`
 - **统计**：后台概览卡片 + `/admin/stats.json`
 - **操作审计**：登录/发文/改设置/删除等写操作自动落库，支持按人/动作/关键字筛选，可导出 CSV（交接或外部审计用）
+- **在线会话**（仅管理员）：查看全部登录会话（用户/IP/设备），单会话或按用户全部踢下线，动作入审计日志
+- **备份恢复**：`make backup` 一键打包数据库与上传文件，`make restore` 输入库名确认后覆盖恢复
 
 ### 前台主题自带
 
@@ -220,6 +222,8 @@ make test-cover    # 覆盖率报告
 make start         # 后台启动（日志 .run/gocms.log）
 make stop          # 停止
 make sign          # macOS 报 "Code Signature Invalid" 时补签名
+make backup        # 备份数据库与 uploads 到 backups/（凭据读 .env）
+make restore       # 恢复备份（会覆盖！）：make restore F=backups/gocms-<时间戳>.tar.gz
 ```
 
 不用 make 也可以：
