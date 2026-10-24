@@ -1,5 +1,7 @@
 # GoCMS · 通用企业官网内容管理系统
 
+[![CI](https://github.com/leo0315code/gocms/actions/workflows/ci.yml/badge.svg)](https://github.com/leo0315code/gocms/actions/workflows/ci.yml)
+
 基于 **Go + MySQL** 的通用型 CMS，面向企业官网、产品站、品牌站、资讯站等场景。
 单二进制部署，服务端渲染（SSR），SEO 友好，支持主题热切换、栏目自定义字段与可自定义的后台入口路径。
 
